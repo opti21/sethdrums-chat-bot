@@ -6,9 +6,11 @@ services:
     ports:
       - 9131:9131
     restart: "on-failure"
-    chat:
-      build: ./chatbot
-      ports:
-        - 9131
-        - 9155
-      restart: "on-failure"
+  chat:
+    depends_on:
+      - pepog
+    build: ./chatbot
+    ports:
+      - 9131
+      - 9155
+    restart: "on-failure"
