@@ -1,0 +1,52 @@
+{
+  "name": "pepega-panel",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.36",
+    "@fortawesome/free-brands-svg-icons": "^5.15.4",
+    "@fortawesome/free-solid-svg-icons": "^5.15.4",
+    "@fortawesome/react-fontawesome": "^0.1.16",
+    "@heroicons/react": "^1.0.5",
+    "@next-auth/prisma-adapter": "^1.0.1",
+    "@prisma/client": "^3.8.0",
+    "@tailwindcss/typography": "^0.5.0",
+    "@types/react-transition-group": "^4.4.4",
+    "axios": "^0.25.0",
+    "daisyui": "^1.22.0",
+    "dotenv": "^11.0.0",
+    "next": "12.0.7",
+    "next-auth": "^4.1.0",
+    "react": "17.0.2",
+    "react-beautiful-dnd": "^13.1.0",
+    "react-dom": "17.0.2",
+    "react-modal": "^3.14.4",
+    "react-player": "^2.9.0",
+    "react-toastify": "^8.1.0",
+    "react-use-websocket": "^2.9.1",
+    "sweetalert2": "^11.3.10",
+    "sweetalert2-react-content": "^4.2.0",
+    "swr": "^1.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.8",
+    "@types/react": "17.0.38",
+    "@types/react-beautiful-dnd": "^13.1.2",
+    "autoprefixer": "^10.4.2",
+    "eslint": "8.6.0",
+    "eslint-config-next": "12.0.7",
+    "postcss": "^8.4.5",
+    "prisma": "^3.8.1",
+    "tailwindcss": "^3.0.13",
+    "typescript": "4.5.4"
+  },
+  "version": "0.0.1",
+  "description": "Frontend for handiling song requests in SethDums' channel",
+  "author": "opti21",
+  "license": "GNU-AGPLv3"
+}

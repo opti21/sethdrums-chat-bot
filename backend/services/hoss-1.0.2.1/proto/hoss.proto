@@ -1,0 +1,40 @@
+syntax = 'proto3';
+
+package hoss;
+
+option go_package = "pepega.dev/onethirtyone/hoss";
+
+message ListBannedTracks {
+  repeated BannedTrack banned_tracks = 1;
+}
+
+message BannedTrack {
+  string  video_id  = 1;
+  bool    status    = 2;
+  string  reason    = 3;
+  string  added_by  = 4;
+  int64   timestamp = 5;
+}
+
+message NullMessage {}
+
+message SingleTrackQuery {
+  string  video_id  = 1;
+}
+
+message AddBannedTrack {
+  string  video_id  = 1;
+  string  reason    = 2;
+  string  added_by  = 3;
+}
+
+message RemoveBannedTrack {
+  bool    removed   = 1;
+}
+
+service BannedTracksService {
+  rpc GetAll(NullMessage) returns (ListBannedTracks);
+  rpc GetSingle(SingleTrackQuery) returns (BannedTrack);
+  rpc AddBan(AddBannedTrack) returns (BannedTrack);
+  rpc RemoveBan(SingleTrackQuery) returns (RemoveBannedTrack);
+}

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package twirp.pepegarpc;
+option go_package = "/internal/pepegaproto";
+
+// PepegaService creates communication between pepega-chat and pepega-ws
+// to lock and unlock queue on the front end to prevent any reorders
+service PepegaService {
+  rpc SendWSUpdate(Update) returns (WsResponse);
+}
+
+// Update message to send on websockets
+message Update {
+  string messagetype = 1;
+}
+
+// Response from websocket for successful websocket broadcast
+message WsResponse {
+  bool success = 1;
+}

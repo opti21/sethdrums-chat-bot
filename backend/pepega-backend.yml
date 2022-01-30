@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+  pepog:
+    build: ./services/pepog-1.0.0
+    ports:
+      - 9131:9131
+    restart: "on-failure"
+    chat:
+      build: ./chatbot
+      ports:
+        - 9131
+        - 9155
+      restart: "on-failure"
