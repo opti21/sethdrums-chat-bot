@@ -120,7 +120,7 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
     }
   }
 
-  var acceptedOrigin = "http://localhost:3000"
+  var acceptedOrigin = "https://copilotlicense.com"
 
    for _, origin := range r.Header["Origin"] {
      fmt.Println(origin)
