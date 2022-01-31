@@ -1,3 +1,4 @@
 .env
-localhost.crt
-localhost.key
+*.crt
+*.pem
+*.key

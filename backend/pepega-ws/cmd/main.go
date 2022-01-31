@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"flag"
 	"fmt"
 	"io"
@@ -157,28 +156,12 @@ func main() {
   var httpsSrv *http.Server
 
   if flgProduction {
-    hostPolicy := func(ctx context.Context, host string) error {
-      allowedHost := "www.copilotlicense.com"
-      if host == allowedHost {
-        return nil
-      }
-      return fmt.Errorf("acme/autocert: only %s host is allowed", allowedHost)
-    }
-
-    dataDir := "."
-    m = &autocert.Manager{
-      Prompt: autocert.AcceptTOS,
-      HostPolicy: hostPolicy,
-      Cache: autocert.DirCache(dataDir),
-    }
-
     httpsSrv = makeHTTPServer()
     httpsSrv.Addr = ":443"
-    httpsSrv.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
 
     go func() {
       fmt.Printf("Starting HTTPS server on %s\n", httpsSrv.Addr)
-      err := httpsSrv.ListenAndServeTLS("", "")
+      err := httpsSrv.ListenAndServeTLs("copilotlicense.com.pem", "copilotlicense.com.key")
       if err != nil {
         log.Fatalf("httpsSrv.ListenAndServeTLS() failed with %s", err)
       }
