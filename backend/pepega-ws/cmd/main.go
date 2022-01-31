@@ -161,7 +161,7 @@ func main() {
 
     go func() {
       fmt.Printf("Starting HTTPS server on %s\n", httpsSrv.Addr)
-      err := httpsSrv.ListenAndServeTLs("copilotlicense.com.pem", "copilotlicense.com.key")
+      err := httpsSrv.ListenAndServeTLS("copilotlicense.com.pem", "copilotlicense.com.key")
       if err != nil {
         log.Fatalf("httpsSrv.ListenAndServeTLS() failed with %s", err)
       }
