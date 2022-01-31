@@ -35,7 +35,7 @@ type QueueUpdate struct {
 
 const (
   htmlIndex = `<html><body>Pepega ws!</body></html>`
-  httpPort = "127.0.0.1:8080"
+  httpPort = "127.0.0.1:80"
 )
 
 var (
