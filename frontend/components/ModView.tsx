@@ -25,7 +25,7 @@ const ModView = () => {
   const [queue, setQueue] = useState("")
 
   const { sendMessage, lastMessage, readyState } = useWebSocket(
-    "wss://copilotlicense/modws"
+    "wss://copilotlicense.com/modws"
   );
 
   useEffect(() => {

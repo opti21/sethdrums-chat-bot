@@ -6,11 +6,16 @@ services:
     ports:
       - 9131:9131
     restart: "on-failure"
+  ws:
+    build: ./pepega-ws
+    ports:
+      - 443
+      - 80
+    restart: "on-failure"
   chat:
     depends_on:
       - pepog
     build: ./chatbot
     ports:
       - 9131
-      - 9155
     restart: "on-failure"
