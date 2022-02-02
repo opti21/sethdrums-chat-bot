@@ -1,7 +1,9 @@
 package websocket
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
 
 	// "sync"
@@ -11,6 +13,12 @@ import (
 )
 
 var ctxB = context.Background()
+
+var (
+	newline = []byte{'\n'}
+	space   = []byte{' '}
+)
+
 
 type Client struct {
   ID string
@@ -28,7 +36,10 @@ func (c *Client) Read() {
   for {
     var msg Message
 
-    err := c.Conn.ReadJSON(&msg)
+    _, message, err := c.Conn.ReadMessage()
+
+    message = bytes.TrimSpace(bytes.ReplaceAll(message, newline, space))
+    fmt.Println(string(message))
 
     if err != nil {
       log.Printf("Error reading JSON: %s\n", err)

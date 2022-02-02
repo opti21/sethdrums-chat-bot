@@ -13,8 +13,6 @@ import (
 	"github.com/opti21/pepega-chat/pkg/utils"
 )
 
-var addr = flag.String("addr", "localhost:8080", "http service address")
-
 var Conn *websocket.Conn
 
 func Init() {
@@ -24,7 +22,7 @@ func Init() {
   interrupt := make(chan os.Signal, 1)
   signal.Notify(interrupt, os.Interrupt)
 
-	u := url.URL{Scheme: "wss", Host: *addr, Path: "/modws"}
+	u := url.URL{Scheme: utils.GetEnv("WS_SCHEMA"), Host: utils.GetEnv("WS_HOST"), Path: "/modws"}
 	log.Printf("connecting to %s", u.String())
 
 

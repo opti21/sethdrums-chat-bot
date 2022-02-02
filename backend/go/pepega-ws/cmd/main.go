@@ -34,7 +34,7 @@ type QueueUpdate struct {
 
 const (
   htmlIndex = `<html><body>Pepega ws!</body></html>`
-  httpPort = "127.0.0.1:80"
+  httpPort = "localhost:8080"
 )
 
 var (
@@ -120,13 +120,22 @@ func serveWs(pool *websocket.Pool, w http.ResponseWriter, r *http.Request) {
     }
   }
 
-  var acceptedOrigin = "https://copilotlicense.com"
+  var acceptedOrigins = make(map[string]int)
+
+
+  if flgProduction {
+    acceptedOrigins["https://copilotlicense.com"] = 1
+  } else {
+    acceptedOrigins["http://localhost:3000"] = 1
+  }
 
    for _, origin := range r.Header["Origin"] {
      fmt.Println(origin)
-     if origin == acceptedOrigin {
-  fmt.Println("GO HERE?")
-  fmt.Println(r.Header)
+     _, found := acceptedOrigins[origin]
+
+     if found  {
+      fmt.Println("GO HERE?")
+      fmt.Println(r.Header)
        for _, cookie := range r.Cookies() {
          // Next auth session from frontend
          if cookie.Name == "next-auth.session-token" {

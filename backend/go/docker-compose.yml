@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  pepog:
+    build: ./services/pepog-1.0.0
+    ports:
+      - 9131:9131
+    restart: "on-failure"
+  websocket:
+    build: ./pepega-ws
+    ports:
+      - 443
+      - "8080:80"
+      - 5432
+    restart: "on-failure"
+      #chat:
+      #  depends_on:
+      #    - pepog
+      #    - ws
+      #  build: ./chatbot
+      #  ports:
+      #    - 9131
+      #    - 5432
+      #    - 8080
+      #  restart: "on-failure"

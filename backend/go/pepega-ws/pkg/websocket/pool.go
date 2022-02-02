@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/opti21/pepega-ws/pkg/redis"
 )
@@ -32,6 +35,9 @@ func NewPool() *Pool {
 }
 
 func (pool *Pool) Start() {
+  interrupt := make(chan os.Signal, 1)
+  signal.Notify(interrupt, os.Interrupt)
+
   for {
     select {
     case client := <-pool.Register:
@@ -65,6 +71,17 @@ func (pool *Pool) Start() {
           return
         }
       }
+    case <- interrupt:
+      fmt.Print("closing connections")
+      for client, _ := range pool.Clients {
+        fmt.Print("closing client: ", client.ID)
+        if err := client.Conn.Close(); err != nil {
+          fmt.Println(err)
+          return
+        }
+      }
+      time.Sleep(time.Second * 1)
+		  os.Exit(1)
     }
   }
 }
