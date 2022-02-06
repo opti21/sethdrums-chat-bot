@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `Video` MODIFY `notes` VARCHAR(191) NOT NULL DEFAULT '';
