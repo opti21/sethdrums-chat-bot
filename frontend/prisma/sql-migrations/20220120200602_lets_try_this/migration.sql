@@ -1,2 +1,0 @@
--- AddForeignKey
-ALTER TABLE `PG_Status` ADD CONSTRAINT `PG_Status_videoId_fkey` FOREIGN KEY (`videoId`) REFERENCES `Video`(`videoId`) ON DELETE RESTRICT ON UPDATE CASCADE;

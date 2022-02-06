@@ -1,5 +1,0 @@
-.env
-*.crt
-*.pem
-*.key
-vendor
