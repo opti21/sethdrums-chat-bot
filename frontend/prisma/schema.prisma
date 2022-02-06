@@ -62,12 +62,14 @@ model Video {
   video_id       String         @unique
   title          String
   channel        String
-  region_blocked Boolean
-  embed_blocked  Boolean
-  duration       Int
+  thumbnail      String
+  region_blocked Boolean?
+  embed_blocked  Boolean?
+  duration       Int?
   notes          String         @default("")
   tags           TagsOnVideos[]
   pg_status      PG_Status?
+  banned         Boolean       @default(false)
   Request        Request[]
 }
 
@@ -98,6 +100,7 @@ model Request {
   queue_id     Int?             @default(2)
   tags         TagsOnRequests[]
   played       Boolean          @default(false)
+  played_at    DateTime?
 }
 
 model TagsOnRequests {

@@ -19,10 +19,10 @@ const ModView = () => {
   const { mutate } = useSWRConfig();
   const { isLoading, isError } = useQueue();
   const { data: session, status } = useSession();
-  const [isInit, setIsInit] = useState(false)
+  const [isInit, setIsInit] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [beingUpdatedBy, setBeingUpdatedBy] = useState("test");
-  const [queue, setQueue] = useState("")
+  const [queue, setQueue] = useState("");
 
   const { sendMessage, lastMessage, readyState } = useWebSocket(
     "ws://localhost:8080/modws"
@@ -30,38 +30,52 @@ const ModView = () => {
 
   useEffect(() => {
     if (lastMessage !== null) {
+      console.log(lastMessage);
       console.log("WS: " + JSON.parse(lastMessage.data).type);
       const message = JSON.parse(lastMessage.data);
       // console.log(message);
       switch (message.type) {
         case "INIT":
-        if(!isInit) {
-          console.log("I NO INIT")
-          setQueue(message.order)
-          setIsInit(true)
-        }
-        break
+          if (!isInit) {
+            const update = {
+              type: "JOIN",
+              mod_name: session?.user?.name,
+            };
+            sendMessage(JSON.stringify(update));
+
+            setQueue(message.order);
+            setIsInit(true);
+          }
+          break;
         case "QUEUE_LOCK":
           console.log("LOCKING QUEUE");
           setIsUpdating(true);
           setBeingUpdatedBy(message.being_updated_by);
-          break
+          break;
         case "QUEUE_UNLOCK":
           console.log("UNLOCKING QUEUE");
-          setQueue(message.order)
+          setQueue(message.order);
           setIsUpdating(false);
           setBeingUpdatedBy("");
-          break
+          break;
         default:
-          console.log(message)
+          console.log(message);
       }
     }
-  }, [lastMessage, isInit, setQueue]);
+  }, [lastMessage, isInit, setQueue, sendMessage, session]);
 
   if (!isInit) return <div>Loading Mod View...</div>;
   if (isError) return <div>ERROR LOADING MOD VIEW</div>;
-  const queueOrder = queue.split(",");
-  // console.log(queue);
+  const queueOrder = queue.length > 0 ? queue.split(",") : [];
+  console.log("queue: ", queueOrder);
+
+  if (queueOrder.length === 0) {
+    return (
+      <div className="bg-pink-700 border-yellow-400 rounded-lg p-3 text-white border ">
+      No requests yet
+      </div>
+    );
+  }
 
   const reorder = (list: string[], startIndex: number, endIndex: number) => {
     const result = list;
@@ -88,7 +102,7 @@ const ModView = () => {
         type: "DRAG_END",
         being_updated_by: "",
         is_updating: false,
-        order: queue
+        order: queue,
       };
       sendMessage(JSON.stringify(update));
       return;
@@ -116,49 +130,52 @@ const ModView = () => {
       <div className="overflow-x-auto">
         <div className="mb-2">
           {!isUpdating ? (
-            <div className="bg-green-900 border-green-400 rounded-lg p-3 text-white border"
-            >Up to date</div>
+            <div className="bg-green-900 border-green-400 rounded-lg p-3 text-white border">
+              Up to date
+            </div>
           ) : (
             <div className="bg-indigo-900 border-blue-400 rounded-lg p-3 text-white border ">
               {beingUpdatedBy} is updating the queue
             </div>
           )}
         </div>
-        {isInit?
-        <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <Droppable droppableId="droppable">
-            {(provided, snapshot) => (
-              <div
-                className="bg-[#1f134e] rounded-lg p-1"
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-              >
-                {queueOrder?.map((requestID, index) => {
-                  return (
-                    <Draggable
-                      key={requestID}
-                      draggableId={"draggable" + requestID}
-                      index={index}
-                      isDragDisabled={isUpdating}
-                    >
-                      {(provided, snapshot) => (
-                        <div>
-                          <ModRequest
-                            provided={provided}
-                            snapshot={snapshot}
-                            requestID={requestID}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext> :
-        <div> NOT INIT </div>}
+        {isInit ? (
+          <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
+            <Droppable droppableId="droppable">
+              {(provided, snapshot) => (
+                <div
+                  className="bg-[#1f134e] rounded-lg p-1"
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                >
+                  {queueOrder?.map((requestID, index) => {
+                    return (
+                      <Draggable
+                        key={requestID}
+                        draggableId={"draggable" + requestID}
+                        index={index}
+                        isDragDisabled={isUpdating}
+                      >
+                        {(provided, snapshot) => (
+                          <div>
+                            <ModRequest
+                              provided={provided}
+                              snapshot={snapshot}
+                              requestID={requestID}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        ) : (
+          <div> NOT INIT </div>
+        )}
       </div>
     </div>
   );

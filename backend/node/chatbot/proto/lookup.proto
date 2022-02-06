@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package onethirtyone;
+
+option go_package = "pepega.dev/onethirtyone/video_details";
+
+message ContentLookup {
+  string id       = 1;  // TrackID UUID
+  string video_id = 2;  // Youtube Video ID
+  string region   = 3;  // ISO-3166-1 Alpha-2 code
+}
+
+message VideoDetails {
+  string  id               = 1; // TrackID UUID
+  string  title            = 2; // Video title
+  string  channel          = 3; // Channel name
+  bool    region_blocked   = 4; // Is region blocked for specified region
+  bool    embed_blocked    = 5; // Is blocked for embedded players
+  int64   duration         = 6; // Duration in seconds
+}
+
+service VideoDetailsService {
+  rpc lookup (ContentLookup) returns (VideoDetails);
+}
