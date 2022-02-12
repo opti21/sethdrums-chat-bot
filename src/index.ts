@@ -354,6 +354,7 @@ async function createRequest(
     });
   } catch (e) {
     console.error(e);
+    return Promise.reject(e)
   }
 }
 
@@ -383,7 +384,7 @@ async function addToQueue(requestID: number | undefined): Promise<boolean> {
     return true;
   } catch (e) {
     console.error("Error adding to queue: ", e);
-    return false;
+    return Promise.reject(e)
   }
 }
 
