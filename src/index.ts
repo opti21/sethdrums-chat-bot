@@ -6,7 +6,7 @@ import tmi from "tmi.js";
 import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
-import { YTApiResponse } from "../types";
+import { YTApiResponse } from "./types";
 
 const twitch = new tmi.Client({
   options: { debug: true, messagesLogLevel: "info" },
@@ -18,7 +18,7 @@ const twitch = new tmi.Client({
     username: "pepega_bot21",
     password: process.env.TWITCH_PASS,
   },
-  channels: ["opti_21"],
+  channels: [process.env.TWITCH_CHANNEL ? process.env.TWITCH_CHANNEL : ""],
 });
 
 const prisma = new PrismaClient();
