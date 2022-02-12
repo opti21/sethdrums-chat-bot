@@ -78,11 +78,10 @@ export interface ContentDetails {
   definition: string
   caption: string
   licensedContent: boolean
-  contentRating: ContentRating
+  contentRating: number // this may need to change but not needed
   projection: string
 }
 
-export interface ContentRating {}
 
 export interface Statistics {
   viewCount: string
