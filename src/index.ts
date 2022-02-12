@@ -28,7 +28,7 @@ const redis = new Redis({
 });
 
 const rws = new ReconnectingWebSocket(
-  "ws://localhost:8080/modws",
+  process.env.WS_URL ? process.env.WS_URL : "",
   [process.env.SERVER_WS_KEY ? process.env.SERVER_WS_KEY : ""],
   { WebSocket: WS }
 );
