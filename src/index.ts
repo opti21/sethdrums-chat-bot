@@ -24,8 +24,6 @@ const twitch = new tmi.Client({
 const prisma = new PrismaClient();
 
 const redis = new Redis({
-  port: 6379,
-  host: process.env.REDIS_HOST ? process.env.REDIS_HOST : "",
   password: process.env.REDIS_PASS,
 });
 
@@ -356,6 +354,7 @@ async function createRequest(
     });
   } catch (e) {
     console.error(e);
+    return Promise.reject(e)
   }
 }
 
@@ -385,7 +384,7 @@ async function addToQueue(requestID: number | undefined): Promise<boolean> {
     return true;
   } catch (e) {
     console.error("Error adding to queue: ", e);
-    return false;
+    return Promise.reject(e)
   }
 }
 
