@@ -129,6 +129,7 @@ twitch.on("message", async (channel, tags, message, self) => {
             const addedToQueue = await addToQueue(createdRequest?.id);
             if (!addedToQueue) {
               twitch.say(channel, `Error adding to queue`);
+              return
             }
 
             twitch.say(
