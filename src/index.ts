@@ -346,6 +346,8 @@ async function createRequest(
 ): Promise<Request | undefined> {
   console.log("CREATE REQUEST");
   try {
+    console.log("VIDEO DATA")
+    console.log(videoID, username)
     return await prisma.request.create({
       data: {
         video_id: videoID,
