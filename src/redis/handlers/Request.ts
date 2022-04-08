@@ -1,7 +1,7 @@
-import { Entity, EntityCreationData, Repository, Schema } from "redis-om";
-import repository from "redis-om/dist/repository/repository";
+import { Entity, EntityCreationData, Schema } from "redis-om";
 import { AlreadyRequestedResponse } from "types";
 import { client, connect } from "../redis";
+import { removeFromOrder } from "./Queue";
 import { getVideo, Video } from "./Video";
 
 interface Request {
@@ -34,7 +34,7 @@ const requestSchema = new Schema(
 export async function createRequestIndex() {
   await connect();
 
-  const repository = new Repository(requestSchema, client);
+  const repository = client.fetchRepository(requestSchema);
 
   await repository.createIndex();
 }
@@ -42,7 +42,7 @@ export async function createRequestIndex() {
 async function createRequest(data: EntityCreationData) {
   await connect();
 
-  const repository = new Repository(requestSchema, client);
+  const repository = client.fetchRepository(requestSchema);
 
   const queue = repository.createEntity(data);
 
@@ -65,13 +65,13 @@ async function updateRequest(
 
     await connect();
 
-    const repository = new Repository(requestSchema, client);
+    const repository = client.fetchRepository(requestSchema);
 
     const request = await repository.fetch(requestID);
 
     request.video_id = videoID;
 
-    const updatedRequestID = repository.save(request);
+    repository.save(request);
 
     return true;
   } catch (e) {
@@ -92,11 +92,18 @@ async function removeRequest(requestID: string | undefined): Promise<boolean> {
 
     await connect();
 
-    const repository = new Repository(requestSchema, client);
+    const repository = client.fetchRepository(requestSchema);
 
-    const removedRequest = await repository.remove(requestID);
+    const removedFromQueue = await removeFromOrder(requestID);
 
-    return Promise.resolve(true);
+    if (removedFromQueue) {
+      await repository.remove(requestID);
+
+      return Promise.resolve(true);
+    } else {
+      console.error("Error removing from order");
+      return Promise.reject(false);
+    }
   } catch (e) {
     console.error("Error removing request: ", e);
     return Promise.reject(false);
@@ -116,7 +123,7 @@ async function checkIfUserAlreadyRequested(
 
   await connect();
 
-  const repository = new Repository(requestSchema, client);
+  const repository = client.fetchRepository(requestSchema);
 
   const request = await repository
     .search()
@@ -146,7 +153,7 @@ async function checkIfVideoAlreadyRequested(
 ): Promise<Video | false> {
   await connect();
 
-  const repository = new Repository(requestSchema, client);
+  const repository = client.fetchRepository(requestSchema);
 
   const requests = await repository
     .search()

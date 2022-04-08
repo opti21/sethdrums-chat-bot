@@ -1,4 +1,3 @@
-import { Search } from "redis-om";
 import { Request } from "redis/handlers/Request";
 import { Video } from "redis/handlers/Video";
 

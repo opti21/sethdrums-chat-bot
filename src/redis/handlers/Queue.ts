@@ -1,7 +1,8 @@
-import { Entity, EntityCreationData, Repository, Schema } from "redis-om";
+import { pusher } from "../../index";
+import { Entity, EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
 
-const QUEUE_ID = "01FWJ8EQKC4Q6417VN5RJJPE66";
+const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
 
 interface Queue {
   order?: string[];
@@ -14,7 +15,7 @@ class Queue extends Entity {}
 const queueSchema = new Schema(
   Queue,
   {
-    order: { type: "array" },
+    order: { type: "string[]" },
     is_updating: { type: "boolean" },
     being_updated_by: { type: "string" },
   },
@@ -26,7 +27,7 @@ const queueSchema = new Schema(
 export async function createQueueIndex() {
   await connect();
 
-  const repository = new Repository(queueSchema, client);
+  const repository = client.fetchRepository(queueSchema);
 
   await repository.createIndex();
 }
@@ -34,7 +35,7 @@ export async function createQueueIndex() {
 async function getQueue() {
   await connect();
 
-  const repository = new Repository(queueSchema, client);
+  const repository = client.fetchRepository(queueSchema);
 
   const queue = await repository.fetch(QUEUE_ID);
 
@@ -44,7 +45,7 @@ async function getQueue() {
 async function createQueue(data: EntityCreationData) {
   await connect();
 
-  const repository = new Repository(queueSchema, client);
+  const repository = client.fetchRepository(queueSchema);
 
   const queue = repository.createEntity(data);
 
@@ -56,7 +57,12 @@ async function createQueue(data: EntityCreationData) {
 async function lockQueue() {
   await connect();
 
-  const repository = new Repository(queueSchema, client);
+  console.log("lock");
+  pusher.trigger("sethdrums-queue", "lock-queue", {
+    beingUpdatedBy: "PEPEGA BOT",
+  });
+
+  const repository = client.fetchRepository(queueSchema);
 
   const queue = await repository.fetch(QUEUE_ID);
 
@@ -71,7 +77,12 @@ async function lockQueue() {
 async function unLockQueue() {
   await connect();
 
-  const repository = new Repository(queueSchema, client);
+  console.log("unlock");
+  pusher.trigger("sethdrums-queue", "unlock-queue", {
+    beingUpdatedBy: "",
+  });
+
+  const repository = client.fetchRepository(queueSchema);
 
   const queue = await repository.fetch(QUEUE_ID);
 
@@ -93,12 +104,13 @@ async function addToQueue(
     }
 
     console.log("UPDATING QUEUE");
+    console.log("adding ", requestID);
 
     lockQueue();
 
     await connect();
 
-    const repository = new Repository(queueSchema, client);
+    const repository = client.fetchRepository(queueSchema);
 
     const queue = await repository.fetch(QUEUE_ID);
 
@@ -108,6 +120,8 @@ async function addToQueue(
 
     unLockQueue();
 
+    pusher.trigger("sethdrums-queue", "queue-add", queue);
+
     return true;
   } catch (e) {
     console.error("Error adding to queue: ", e);
@@ -115,4 +129,42 @@ async function addToQueue(
   }
 }
 
-export { Queue, getQueue, createQueue, lockQueue, unLockQueue, addToQueue };
+async function removeFromOrder(
+  requestID: string | undefined
+): Promise<boolean> {
+  try {
+    lockQueue();
+
+    await connect();
+
+    const repository = client.fetchRepository(queueSchema);
+
+    const queue = await repository.fetch(QUEUE_ID);
+
+    if (queue.order) {
+      for (let i = 0; i < queue.order.length; i++) {
+        if (queue.order[i] === requestID) {
+          queue.order.splice(i, 1);
+        }
+      }
+    }
+
+    await repository.save(queue);
+
+    unLockQueue();
+
+    return true;
+  } catch (e) {
+    return Promise.reject("Error removing from order");
+  }
+}
+
+export {
+  Queue,
+  getQueue,
+  createQueue,
+  lockQueue,
+  unLockQueue,
+  addToQueue,
+  removeFromOrder,
+};

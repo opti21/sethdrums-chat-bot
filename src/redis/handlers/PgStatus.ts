@@ -1,4 +1,4 @@
-import { Entity, EntityCreationData, Repository, Schema } from "redis-om";
+import { Entity, EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
 
 interface PgStatus {
@@ -38,7 +38,7 @@ const pgStatusSchema = new Schema(
 export async function createPGIndex() {
   await connect();
 
-  const repository = new Repository(pgStatusSchema, client);
+  const repository = client.fetchRepository(pgStatusSchema);
 
   await repository.createIndex();
 }
@@ -46,7 +46,7 @@ export async function createPGIndex() {
 async function createPgStatus(data: EntityCreationData) {
   await connect();
 
-  const repository = new Repository(pgStatusSchema, client);
+  const repository = client.fetchRepository(pgStatusSchema);
 
   const queue = repository.createEntity(data);
 

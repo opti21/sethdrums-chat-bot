@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Entity, EntityCreationData, Repository, Schema } from "redis-om";
+import { Entity, Schema } from "redis-om";
 import { YTApiResponse } from "types";
 import { client, connect } from "../redis";
 import { createPgStatus, Status } from "./PgStatus";
@@ -39,7 +39,7 @@ const videoSchema = new Schema(
 export async function createVideoIndex() {
   await connect();
 
-  const repository = new Repository(videoSchema, client);
+  const repository = client.fetchRepository(videoSchema);
 
   await repository.createIndex();
 }
@@ -47,7 +47,7 @@ export async function createVideoIndex() {
 async function getVideo(videoID: string) {
   await connect();
 
-  const repository = new Repository(videoSchema, client);
+  const repository = client.fetchRepository(videoSchema);
 
   const video = await repository.fetch(videoID);
 
@@ -57,7 +57,7 @@ async function getVideo(videoID: string) {
 async function findVideoByYtID(videoID: string) {
   await connect();
 
-  const repository = new Repository(videoSchema, client);
+  const repository = client.fetchRepository(videoSchema);
 
   const video = await repository
     .search()
@@ -79,7 +79,7 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
     if (axiosResponse.data.items[0]) {
       await connect();
 
-      const repository = new Repository(videoSchema, client);
+      const repository = client.fetchRepository(videoSchema);
       const apiData: YTApiResponse = axiosResponse.data;
       const videoData = apiData.items[0];
       const duration = parseYTDuration(videoData.contentDetails.duration);
@@ -119,7 +119,7 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
 
     await connect();
 
-    const repository = new Repository(videoSchema, client);
+    const repository = client.fetchRepository(videoSchema);
 
     const video = repository.createEntity({
       youtube_id: videoID,

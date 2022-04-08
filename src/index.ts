@@ -3,11 +3,6 @@ import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import Pusher from "pusher";
 import {
-  createVideo,
-  createVideoIndex,
-  findVideoByYtID,
-} from "./redis/handlers/Video";
-import {
   addToQueue,
   createQueue,
   createQueueIndex,
@@ -20,24 +15,29 @@ import {
   removeRequest,
   updateRequest,
 } from "./redis/handlers/Request";
+import {
+  createVideo,
+  createVideoIndex,
+  findVideoByYtID,
+} from "./redis/handlers/Video";
 import { createPGIndex } from "./redis/handlers/PgStatus";
 
-async function makeQueue() {
-  await createQueue({
-    order: [],
-    is_updating: false,
-    being_updated_by: "",
-  });
-}
+// async function makeQueue() {
+//   await createQueue({
+//     order: [],
+//     is_updating: false,
+//     being_updated_by: "",
+//   });
+// }
 
 // makeQueue();
 
-async function initIndex() {
-  await createQueueIndex();
-  await createVideoIndex();
-  await createRequestIndex();
-  await createPGIndex();
-}
+// async function initIndex() {
+//   await createVideoIndex();
+//   await createRequestIndex();
+//   await createQueueIndex();
+//   await createPGIndex();
+// }
 
 // initIndex();
 
@@ -58,15 +58,23 @@ async function initIndex() {
 
 // createQueue();
 
-const pusher = new Pusher({
-  appId: "1339967",
-  key: "3eb62935d2b135723e27",
-  secret: "ec156a3bd68f5415f4eb",
-  cluster: "us2",
+if (
+  !process.env.PUSHER_APP_ID ||
+  !process.env.PUSHER_KEY ||
+  !process.env.PUSHER_SECRET ||
+  !process.env.PUSHER_CLUSTER
+) {
+  throw new Error("Missing Pusher environment variables");
+}
+
+export const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
   useTLS: true,
 });
 
-console.log(pusher);
 const twitch = new tmi.Client({
   options: { debug: true, messagesLogLevel: "info" },
   connection: {
@@ -81,6 +89,8 @@ const twitch = new tmi.Client({
 });
 
 twitch.connect().catch(console.error);
+
+// const sendReply = true;
 
 twitch.on("message", async (channel, tags, message, self) => {
   if (self) return;
@@ -146,9 +156,9 @@ twitch.on("message", async (channel, tags, message, self) => {
             played_at: "",
           });
 
-          const addedToQueue = await addToQueue(createdRequest);
+          const updatedQueue = await addToQueue(createdRequest);
 
-          if (!addedToQueue) {
+          if (!updatedQueue) {
             twitch.say(channel, `Error adding to queue`);
             return;
           }
@@ -297,7 +307,7 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "save") {
-      twitch.say(channel, "15 minutes can save you 15% on car insurace");
+      twitch.say(channel, "15 minutes can save you 15% on car insurance");
     }
   }
 });

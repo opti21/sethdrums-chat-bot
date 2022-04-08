@@ -1,10 +1,4 @@
-import {
-  Client,
-  Entity,
-  Schema,
-  Repository,
-  EntityCreationData,
-} from "redis-om";
+import { Client } from "redis-om";
 
 export const client = new Client();
 
