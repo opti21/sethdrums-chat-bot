@@ -394,13 +394,10 @@ async function updateRequest(
 }
 
 // HTTP endpoint because render
-
-const express = require("express");
+import express from "express";
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.get("/", (req: any, res: any) =>
-  res.status(200).send("pepega bot is running")
-);
+app.get("/", (req, res) => res.status(200).send("pepega bot is running"));
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
