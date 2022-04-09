@@ -1,62 +1,11 @@
+import { PrismaClient, Request, Video } from "@prisma/client";
 import tmi from "tmi.js";
+import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
+import { YTApiResponse } from "./types";
+import { addToQueue, removeFromOrder } from "./redis/handlers/Queue";
 import Pusher from "pusher";
-import {
-  addToQueue,
-  createQueue,
-  createQueueIndex,
-} from "./redis/handlers/Queue";
-import {
-  checkIfUserAlreadyRequested,
-  checkIfVideoAlreadyRequested,
-  createRequest,
-  createRequestIndex,
-  removeRequest,
-  updateRequest,
-} from "./redis/handlers/Request";
-import {
-  createVideo,
-  createVideoIndex,
-  findVideoByYtID,
-} from "./redis/handlers/Video";
-import { createPGIndex } from "./redis/handlers/PgStatus";
-
-// async function makeQueue() {
-//   await createQueue({
-//     order: [],
-//     is_updating: false,
-//     being_updated_by: "",
-//   });
-// }
-
-// makeQueue();
-
-// async function initIndex() {
-//   await createVideoIndex();
-//   await createRequestIndex();
-//   await createQueueIndex();
-//   await createPGIndex();
-// }
-
-// initIndex();
-
-// async function findQueue() {
-//   const queue = await prisma.queue.findFirst();
-//   console.log(queue);
-// }
-
-// findQueue();
-
-// async function createQueue() {
-//   const queue = await QueueModel.create({
-//     is_updating: false,
-//     being_updated_by: "",
-//   });
-//   console.log(queue);
-// }
-
-// createQueue();
 
 if (
   !process.env.PUSHER_APP_ID ||
@@ -88,9 +37,9 @@ const twitch = new tmi.Client({
   channels: [process.env.TWITCH_CHANNEL ? process.env.TWITCH_CHANNEL : ""],
 });
 
-twitch.connect().catch(console.error);
+const prisma = new PrismaClient();
 
-// const sendReply = true;
+twitch.connect().catch(console.error);
 
 twitch.on("message", async (channel, tags, message, self) => {
   if (self) return;
@@ -110,55 +59,63 @@ twitch.on("message", async (channel, tags, message, self) => {
         return;
       }
 
-      const userAlreadyRequested = await checkIfUserAlreadyRequested(
-        tags.username
-      );
+      const userAlreadyRequested = await prisma.request.findFirst({
+        where: {
+          requested_by: tags.username,
+        },
+        include: {
+          Video: true,
+        },
+      });
 
-      console.log(userAlreadyRequested);
+      const videoAlreadyRequested = await prisma.request.findFirst({
+        where: {
+          Video: {
+            youtube_id: parsed?.id,
+          },
+          played: false,
+        },
+        include: {
+          Video: true,
+        },
+      });
 
-      if (userAlreadyRequested.request) {
+      if (userAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like you already have a request for ${userAlreadyRequested.video?.title}`
+          `Uh oh! @${tags.username} looks like you already have a request for ${userAlreadyRequested.Video.title}`
         );
         return;
       }
 
-      const videoAlreadyRequested = await checkIfVideoAlreadyRequested(
-        parsed.id
-      );
-      console.log("VID ALREADY REQUESTED??", videoAlreadyRequested);
-
       if (videoAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like someone already requested that video maybe try another one`
+          `Uh oh! @${tags.username} looks like someone already requested that video maye try another one`
         );
         return;
       }
 
       // Check if video is in database
-      const videoInDB = await findVideoByYtID(parsed.id);
-
-      console.log("VIDEO IN DB?");
-      console.log(parsed.id);
+      const videoInDB = await prisma.video.findUnique({
+        where: {
+          youtube_id: parsed.id,
+        },
+      });
 
       if (!videoInDB) {
         // Video doesn't exist on database
         // Make new video then request
-        const createdVideo = await createVideo(parsed.id);
+        const createdVideo = await createVideo(parsed.id, channel);
 
         if (createdVideo) {
-          const createdRequest = await createRequest({
-            requested_by: tags.username ? tags.username : "",
-            video_id: createdVideo.entityId,
-            played: false,
-            played_at: "",
-          });
+          const createdRequest = await createRequest(
+            createdVideo.id,
+            tags.username ? tags.username : ""
+          );
 
-          const updatedQueue = await addToQueue(createdRequest);
-
-          if (!updatedQueue) {
+          const addedToQueue = await addToQueue(createdRequest?.id.toString());
+          if (!addedToQueue) {
             twitch.say(channel, `Error adding to queue`);
             return;
           }
@@ -181,25 +138,23 @@ twitch.on("message", async (channel, tags, message, self) => {
       }
 
       // If video is already in DB just create a request
-      const createdRequest = await createRequest({
-        requested_by: tags.username ? tags.username : "",
-        video_id: videoInDB.entityId,
-        played: false,
-        played_at: "",
-      });
+      const createdRequest = await createRequest(
+        videoInDB.id,
+        tags.username ? tags.username : ""
+      );
 
       if (!createRequest) {
         twitch.say(channel, `Error creating request`);
         return;
       }
 
-      const addedToQueue = await addToQueue(createdRequest);
+      const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
       if (!addedToQueue) {
         twitch.say(channel, `Error adding to queue`);
       }
 
-      twitch.say(channel, `@${tags.username} requested ${videoInDB["title"]}`);
+      twitch.say(channel, `@${tags.username} requested ${videoInDB.title}`);
 
       return;
     }
@@ -210,14 +165,21 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (!parsed) {
         twitch.say(
           channel,
-          `Uh oh! ${tags.username} in order to replace your current request please provide a new youtube URL`
+          `Uh oh! ${tags.username} please request with a youtube url`
         );
         return;
       }
 
-      const userHasRequest = await checkIfUserAlreadyRequested(tags.username);
+      const userHasRequest = await prisma.request.findFirst({
+        where: {
+          requested_by: tags.username,
+        },
+        include: {
+          Video: true,
+        },
+      });
 
-      if (!userHasRequest.request) {
+      if (!userHasRequest) {
         // If a user doesn't have a request in the queue
         twitch.say(
           channel,
@@ -226,22 +188,34 @@ twitch.on("message", async (channel, tags, message, self) => {
         return;
       }
 
-      const videoAlreadyRequested = await checkIfVideoAlreadyRequested(
-        parsed.id
-      );
+      const videoAlreadyRequested = await prisma.request.findFirst({
+        where: {
+          Video: {
+            youtube_id: parsed?.id,
+          },
+          played: false,
+        },
+        include: {
+          Video: true,
+        },
+      });
 
       if (videoAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like someone already requested that video maybe try another one`
+          `Uh oh! @${tags.username} looks like someone already requested that video maye try another one`
         );
         return;
       }
 
-      const videoInDB = await findVideoByYtID(parsed.id);
+      const videoInDB = await prisma.video.findUnique({
+        where: {
+          youtube_id: parsed.id,
+        },
+      });
 
       if (!videoInDB) {
-        const createdVideo = await createVideo(parsed.id);
+        const createdVideo = await createVideo(parsed.id, channel);
 
         if (!createdVideo) {
           console.error("Error creating video");
@@ -249,8 +223,8 @@ twitch.on("message", async (channel, tags, message, self) => {
         }
 
         const requestUpdated = await updateRequest(
-          userHasRequest.request.entityId,
-          createdVideo.entityId
+          userHasRequest.id,
+          createdVideo.id
         );
 
         if (!requestUpdated) {
@@ -264,8 +238,8 @@ twitch.on("message", async (channel, tags, message, self) => {
       }
 
       const requestUpdated = await updateRequest(
-        userHasRequest.request.entityId,
-        videoInDB.entityId
+        userHasRequest.id,
+        videoInDB.id
       );
 
       if (!requestUpdated) {
@@ -279,9 +253,16 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "wrongsong" || command === "remove") {
-      const userHasRequest = await checkIfUserAlreadyRequested(tags.username);
+      const userHasRequest = await prisma.request.findFirst({
+        where: {
+          requested_by: tags.username,
+        },
+        include: {
+          Video: true,
+        },
+      });
 
-      if (!userHasRequest.request) {
+      if (!userHasRequest) {
         // If a user doesn't have a request in the queue
         twitch.say(
           channel,
@@ -290,24 +271,136 @@ twitch.on("message", async (channel, tags, message, self) => {
         return;
       }
 
-      console.log(userHasRequest);
+      const removedRequest = await prisma.request.delete({
+        where: {
+          id: userHasRequest.id,
+        },
+      });
+      console.log("Removed db request: ", removedRequest);
 
-      const requestRemoved = await removeRequest(
-        userHasRequest.request.entityId
+      const removedFromQueue = await removeFromOrder(
+        userHasRequest.id.toString()
       );
 
-      if (!requestRemoved) {
+      if (!removedFromQueue) {
         // Error removing request
-        twitch.say(channel, `Error removing request`);
+        twitch.say(channel, `Error removing request from queue`);
         return;
       }
 
-      twitch.say(channel, `@${tags.username} your request has been removed`);
+      twitch.say(channel, `@${tags.username} request removed`);
       return;
     }
 
     if (command === "save") {
-      twitch.say(channel, "15 minutes can save you 15% on car insurance");
+      twitch.say(channel, "15 minutes can save you 15% on car insurace");
     }
   }
 });
+
+async function createVideo(
+  videoID: string,
+  channel: string
+): Promise<Video | undefined> {
+  try {
+    const axiosResponse = await axios.get(
+      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoID}&key=${process.env.GOOGLE_API_KEY}`
+    );
+
+    if (axiosResponse.data.items[0]) {
+      const apiData: YTApiResponse = axiosResponse.data;
+      const video = apiData.items[0];
+      const duration = parseYTDuration(video.contentDetails.duration);
+      console.log(video);
+
+      const createdVideo = await prisma.video.create({
+        data: {
+          youtube_id: videoID,
+          title: video.snippet.title,
+          duration: duration,
+          region_blocked: false,
+          embed_blocked: false,
+          channel: video.snippet.channelTitle,
+          PG_Status: {
+            create: {
+              status: "NOT_CHECKED",
+            },
+          },
+        },
+      });
+
+      return createdVideo;
+    }
+  } catch (e) {
+    console.error(e);
+    twitch.say(channel, "Youtube API Error");
+  }
+}
+
+async function createRequest(
+  videoID: number,
+  username: string
+): Promise<Request | undefined> {
+  console.log("CREATE REQUEST");
+  try {
+    return await prisma.request.create({
+      data: {
+        video_id: videoID,
+        requested_by: username,
+      },
+    });
+  } catch (e) {
+    console.error(e);
+    return Promise.reject(e);
+  }
+}
+
+function parseYTDuration(duration: string): number {
+  const match = duration.match(/P(\d+Y)?(\d+W)?(\d+D)?T(\d+H)?(\d+M)?(\d+S)?/);
+  // An invalid case won't crash the app.
+  if (!match) {
+    console.error(`Invalid YouTube video duration: ${duration}`);
+    return 0;
+  }
+  const [years, weeks, days, hours, minutes, seconds] = match
+    .slice(1)
+    .map((_) => (_ ? parseInt(_.replace(/\D/, "")) : 0));
+  return (
+    (((years * 365 + weeks * 7 + days) * 24 + hours) * 60 + minutes) * 60 +
+    seconds
+  );
+}
+
+async function updateRequest(
+  requestID: number,
+  videoID: number
+): Promise<boolean> {
+  try {
+    const updatedRequest = await prisma.request.update({
+      where: {
+        id: requestID,
+      },
+      data: {
+        video_id: videoID,
+      },
+    });
+
+    console.log(updatedRequest);
+    return true;
+  } catch (e) {
+    console.error("Error updating request: ", e);
+    return false;
+  }
+}
+
+// HTTP endpoint because render
+
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3001;
+
+app.get("/", (req: any, res: any) =>
+  res.status(200).send("pepega bot is running")
+);
+
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));

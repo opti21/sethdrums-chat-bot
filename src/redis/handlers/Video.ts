@@ -93,6 +93,8 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
         embed_blocked: false,
         channel: videoData.snippet.channelTitle,
         thumbnail: `https://i.ytimg.com/vi/${videoID}/mqdefault.jpg`,
+        notes: "",
+        banned: false,
       });
 
       const createdVideoID = await repository.save(video);
@@ -129,6 +131,8 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
       embed_blocked: false,
       channel: "",
       thumbnail: `https://i.ytimg.com/vi/${videoID}/mqdefault.jpg`,
+      notes: "",
+      banned: false,
     });
 
     const createdVideoID = await repository.save(video);
