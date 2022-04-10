@@ -16,7 +16,7 @@ model Request {
   id             Int              @id @default(autoincrement())
   requested_by   String
   priority       Boolean          @default(false)
-  video_id       Int              @unique
+  video_id       Int              
   queue_id       Int?             @default(2)
   played         Boolean          @default(false)
   played_at      DateTime?
@@ -55,6 +55,7 @@ model Video {
   id             Int            @id @default(autoincrement())
   youtube_id     String         @unique
   title          String
+  thumbnail      String
   channel        String
   region_blocked Boolean?
   embed_blocked  Boolean?

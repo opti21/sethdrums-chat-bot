@@ -5,6 +5,8 @@ import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import { YTApiResponse } from "./types";
 import { addToQueue, removeFromOrder } from "./redis/handlers/Queue";
+import { parseYTDuration } from "./utils";
+import express from "express";
 import Pusher from "pusher";
 
 if (
@@ -115,6 +117,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           );
 
           const addedToQueue = await addToQueue(createdRequest?.id.toString());
+
           if (!addedToQueue) {
             twitch.say(channel, `Error adding to queue`);
             return;
@@ -318,6 +321,7 @@ async function createVideo(
           youtube_id: videoID,
           title: video.snippet.title,
           duration: duration,
+          thumbnail: `https://i.ytimg.com/vi/${videoID}/mqdefault.jpg`,
           region_blocked: false,
           embed_blocked: false,
           channel: video.snippet.channelTitle,
@@ -355,22 +359,6 @@ async function createRequest(
   }
 }
 
-function parseYTDuration(duration: string): number {
-  const match = duration.match(/P(\d+Y)?(\d+W)?(\d+D)?T(\d+H)?(\d+M)?(\d+S)?/);
-  // An invalid case won't crash the app.
-  if (!match) {
-    console.error(`Invalid YouTube video duration: ${duration}`);
-    return 0;
-  }
-  const [years, weeks, days, hours, minutes, seconds] = match
-    .slice(1)
-    .map((_) => (_ ? parseInt(_.replace(/\D/, "")) : 0));
-  return (
-    (((years * 365 + weeks * 7 + days) * 24 + hours) * 60 + minutes) * 60 +
-    seconds
-  );
-}
-
 async function updateRequest(
   requestID: number,
   videoID: number
@@ -394,7 +382,6 @@ async function updateRequest(
 }
 
 // HTTP endpoint because render
-import express from "express";
 const app = express();
 const port = process.env.PORT || 3001;
 
