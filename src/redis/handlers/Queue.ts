@@ -58,7 +58,7 @@ async function lockQueue() {
   await connect();
 
   console.log("lock");
-  pusher.trigger("sethdrums-queue", "lock-queue", {
+  pusher.trigger("presence-sethdrums-queue", "lock-queue", {
     beingUpdatedBy: "PEPEGA BOT",
   });
 
@@ -78,7 +78,7 @@ async function unLockQueue() {
   await connect();
 
   console.log("unlock");
-  pusher.trigger("sethdrums-queue", "unlock-queue", {
+  pusher.trigger("presence-sethdrums-queue", "unlock-queue", {
     beingUpdatedBy: "",
   });
 
@@ -120,7 +120,7 @@ async function addToQueue(
 
     unLockQueue();
 
-    pusher.trigger("sethdrums-queue", "queue-add", queue);
+    pusher.trigger("presence-sethdrums-queue", "queue-add", queue);
 
     return true;
   } catch (e) {
