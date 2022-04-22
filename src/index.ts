@@ -4,10 +4,11 @@ import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import { YTApiResponse } from "./types";
-import { addToQueue, removeFromOrder } from "./redis/handlers/Queue";
+import { addToQueue, getQueue, removeFromOrder } from "./redis/handlers/Queue";
 import { parseYTDuration } from "./utils";
 import express from "express";
 import Pusher from "pusher";
+import { request } from "http";
 
 if (
   !process.env.PUSHER_APP_ID ||
@@ -64,6 +65,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       const userAlreadyRequested = await prisma.request.findFirst({
         where: {
           requested_by: tags.username,
+          played: false,
         },
         include: {
           Video: true,
@@ -293,6 +295,41 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       twitch.say(channel, `@${tags.username} request removed`);
       return;
+    }
+
+    if (command === "song") {
+      const queue = await getQueue();
+      console.log(queue);
+      if (!queue) {
+        twitch.say(channel, "Error getting queue");
+      }
+
+      if (!queue.now_playing) {
+        twitch.say(
+          channel,
+          `@${tags.username} There's nothing playing at the moment`
+        );
+        return;
+      }
+
+      const request = await prisma.request
+        .findFirst({
+          where: {
+            id: parseInt(queue.now_playing),
+          },
+          include: {
+            Video: true,
+          },
+        })
+        .catch((err) => {
+          console.error(err);
+          twitch.say(channel, "Error getting current song");
+        });
+
+      return twitch.say(
+        channel,
+        `@${tags.username} Current Song: ${request?.Video.title}`
+      );
     }
 
     if (command === "save") {
