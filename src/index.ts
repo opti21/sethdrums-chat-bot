@@ -281,7 +281,6 @@ twitch.on("message", async (channel, tags, message, self) => {
           id: userHasRequest.id,
         },
       });
-      console.log("Removed db request: ", removedRequest);
 
       const removedFromQueue = await removeFromOrder(
         userHasRequest.id.toString()
@@ -299,7 +298,6 @@ twitch.on("message", async (channel, tags, message, self) => {
 
     if (command === "song") {
       const queue = await getQueue();
-      console.log(queue);
       if (!queue) {
         twitch.say(channel, "Error getting queue");
       }
@@ -351,7 +349,6 @@ async function createVideo(
       const apiData: YTApiResponse = axiosResponse.data;
       const video = apiData.items[0];
       const duration = parseYTDuration(video.contentDetails.duration);
-      console.log(video);
 
       const createdVideo = await prisma.video.create({
         data: {
@@ -382,7 +379,6 @@ async function createRequest(
   videoID: number,
   username: string
 ): Promise<Request | undefined> {
-  console.log("CREATE REQUEST");
   try {
     return await prisma.request.create({
       data: {
@@ -410,7 +406,6 @@ async function updateRequest(
       },
     });
 
-    console.log(updatedRequest);
     return true;
   } catch (e) {
     console.error("Error updating request: ", e);
