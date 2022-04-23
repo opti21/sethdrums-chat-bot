@@ -1,25 +1,21 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  provider          = "postgresql"
+  url               = env("POSTGRES_URL")
   shadowDatabaseUrl = env("POSTGRES_GHOST_URL")
 }
-
 
 model Request {
   id             Int              @id @default(autoincrement())
   requested_by   String
-  priority       Boolean          @default(false)
-  video_id       Int              
+  video_id       Int
   queue_id       Int?             @default(2)
   played         Boolean          @default(false)
   played_at      DateTime?
+  priority       Boolean          @default(false)
   Video          Video            @relation(fields: [video_id], references: [id])
   TagsOnRequests TagsOnRequests[]
 }
@@ -37,6 +33,7 @@ model TagsOnRequests {
   assigned_by String
   Request     Request    @relation(fields: [request_id], references: [id])
   RequestTag  RequestTag @relation(fields: [tag_id], references: [id])
+
   @@id([request_id, tag_id])
 }
 
@@ -55,15 +52,15 @@ model Video {
   id             Int            @id @default(autoincrement())
   youtube_id     String         @unique
   title          String
-  thumbnail      String
   channel        String
   region_blocked Boolean?
   embed_blocked  Boolean?
   duration       Int?
   notes          String         @default("")
   banned         Boolean        @default(false)
+  thumbnail      String
   PG_Status      PG_Status?
-  Request        Request?
+  Requests       Request[]
   TagsOnVideos   TagsOnVideos[]
 }
 
@@ -80,6 +77,7 @@ model TagsOnVideos {
   assigned_by String
   VideoTag    VideoTag @relation(fields: [tag_id], references: [id])
   Video       Video    @relation(fields: [video_id], references: [id])
+
   @@id([video_id, tag_id])
 }
 
