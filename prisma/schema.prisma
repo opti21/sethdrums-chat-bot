@@ -57,8 +57,10 @@ model Video {
   embed_blocked  Boolean?
   duration       Int?
   notes          String         @default("")
-  banned         Boolean        @default(false)
   thumbnail      String
+  banned         Boolean        @default(false)
+  banned_time    DateTime?
+  banned_by      String?
   PG_Status      PG_Status?
   Requests       Request[]
   TagsOnVideos   TagsOnVideos[]
