@@ -6,6 +6,7 @@
 /dist/
 /docs/
 .idea/*
+seedMods.ts
 
 .DS_Store
 coverage

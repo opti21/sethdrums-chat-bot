@@ -59,7 +59,6 @@ async function createQueue(data: EntityCreationData) {
 async function lockQueue() {
   await connect();
 
-  console.log("lock");
   pusher.trigger("presence-sethdrums-queue", "lock-queue", {
     beingUpdatedBy: "PEPEGA BOT",
   });
@@ -79,7 +78,6 @@ async function lockQueue() {
 async function unLockQueue() {
   await connect();
 
-  console.log("unlock");
   pusher.trigger("presence-sethdrums-queue", "unlock-queue", {
     beingUpdatedBy: "",
   });
@@ -104,9 +102,6 @@ async function addToQueue(
       console.error("No requestID passed");
       return;
     }
-
-    console.log("UPDATING QUEUE");
-    console.log("adding ", requestID);
 
     lockQueue();
 

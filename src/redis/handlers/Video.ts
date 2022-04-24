@@ -70,8 +70,6 @@ async function findVideoByYtID(videoID: string) {
 
 async function createVideo(videoID: string): Promise<Video | undefined> {
   try {
-    console.log("VIDEO ID? ", videoID);
-
     const axiosResponse = await axios.get(
       `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoID}&key=${process.env.GOOGLE_API_KEY}`
     );
@@ -83,7 +81,6 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
       const apiData: YTApiResponse = axiosResponse.data;
       const videoData = apiData.items[0];
       const duration = parseYTDuration(videoData.contentDetails.duration);
-      console.log(videoData.snippet.thumbnails);
 
       const video = repository.createEntity({
         youtube_id: videoID,
@@ -99,8 +96,6 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
 
       const createdVideoID = await repository.save(video);
 
-      console.log("VIDEO ID? ", createdVideoID);
-
       const createdPG = await createPgStatus({
         video_id: createdVideoID,
         status: Status.NotChecked,
@@ -109,8 +104,6 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
         previous_checker: "",
         last_checked: "",
       });
-
-      console.log(createdPG);
 
       const createdVideo = await repository.fetch(createdVideoID);
 
@@ -137,8 +130,6 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
 
     const createdVideoID = await repository.save(video);
 
-    console.log("VIDEO ID? ", createdVideoID);
-
     const createdPG = await createPgStatus({
       video_id: createdVideoID,
       status: Status.NotChecked,
@@ -147,8 +138,6 @@ async function createVideo(videoID: string): Promise<Video | undefined> {
       previous_checker: "",
       last_checked: "",
     });
-
-    console.log(createdPG);
 
     const createdVideo = await repository.fetch(createdVideoID);
 
