@@ -27,6 +27,9 @@ export const pusher = new Pusher({
   useTLS: true,
 });
 
+const botUsername =
+  process.env.NODE_ENV === "production" ? "pepega_bot21" : "opti_21";
+
 const twitch = new tmi.Client({
   options: { debug: true, messagesLogLevel: "info" },
   connection: {
@@ -34,7 +37,7 @@ const twitch = new tmi.Client({
     secure: true,
   },
   identity: {
-    username: "pepega_bot21",
+    username: botUsername,
     password: process.env.TWITCH_PASS,
   },
   channels: [process.env.TWITCH_CHANNEL ? process.env.TWITCH_CHANNEL : ""],
@@ -57,7 +60,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (!parsed) {
         twitch.say(
           channel,
-          `Uh oh! ${tags.username} please request with a youtube url`
+          `@${tags.username} please request with a youtube url`
         );
         return;
       }
@@ -87,7 +90,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (userAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like you already have a request for ${userAlreadyRequested.Video.title}`
+          `@${tags.username} looks like you already have a song in the queue, once your request has been played or removed, you can request another`
         );
         return;
       }
@@ -95,7 +98,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (videoAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like someone already requested that video maye try another one`
+          `@${tags.username} this song has already been requested, please try another song`
         );
         return;
       }
@@ -137,7 +140,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (videoInDB.banned) {
         twitch.say(
           channel,
-          `Unfortunately @${tags.username} that video isn't allowed, maybe try another :)`
+          `@${tags.username} your song was not added, all songs must be PG/family friendly`
         );
         return;
       }
@@ -170,7 +173,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (!parsed) {
         twitch.say(
           channel,
-          `Uh oh! ${tags.username} please request with a youtube url`
+          `@${tags.username} please request with a youtube url`
         );
         return;
       }
@@ -188,7 +191,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         // If a user doesn't have a request in the queue
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} I don't see a request from you in the queue, try doing !sr instead`
+          `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
         );
         return;
       }
@@ -208,7 +211,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (videoAlreadyRequested) {
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} looks like someone already requested that video maye try another one`
+          `@${tags.username} this song has already been requested, please try another song`
         );
         return;
       }
@@ -271,7 +274,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         // If a user doesn't have a request in the queue
         twitch.say(
           channel,
-          `Uh oh! @${tags.username} I don't see a request from you in the queue, try doing !sr instead`
+          `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
         );
         return;
       }
