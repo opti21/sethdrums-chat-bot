@@ -8,7 +8,32 @@ import { addToQueue, getQueue, removeFromOrder } from "./redis/handlers/Queue";
 import { parseYTDuration } from "./utils";
 import express from "express";
 import Pusher from "pusher";
-import { request } from "http";
+import { GrowthBook } from "@growthbook/growthbook";
+
+const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
+const growthbook = new GrowthBook({
+  trackingCallback: (experiment, result) => {
+    console.log({
+      experimentId: experiment.key,
+      variationId: result.variationId,
+    });
+  },
+});
+
+const getFeatures = async () => {
+  console.log("Getting features");
+  await axios
+    .get(FEATURES_ENDPOINT!)
+    .then((res) => {
+      const json = res.data;
+      growthbook.setFeatures(json.features);
+    })
+    .catch(() => {
+      console.log("Failed to fetch feature definitions from GrowthBook");
+    });
+};
+
+setInterval(getFeatures, 5000);
 
 if (
   !process.env.PUSHER_APP_ID ||
@@ -58,10 +83,12 @@ twitch.on("message", async (channel, tags, message, self) => {
       const parsed = urlParser.parse(args[0]);
 
       if (!parsed) {
-        twitch.say(
-          channel,
-          `@${tags.username} please request with a youtube url`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} please request with a youtube url`
+          );
+        }
         return;
       }
 
@@ -88,18 +115,22 @@ twitch.on("message", async (channel, tags, message, self) => {
       });
 
       if (userAlreadyRequested) {
-        twitch.say(
-          channel,
-          `@${tags.username} looks like you already have a song in the queue, once your request has been played or removed, you can request another`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} looks like you already have a song in the queue, once your request has been played or removed, you can request another`
+          );
+        }
         return;
       }
 
       if (videoAlreadyRequested) {
-        twitch.say(
-          channel,
-          `@${tags.username} this song has already been requested, please try another song`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} this song has already been requested, please try another song`
+          );
+        }
         return;
       }
 
@@ -128,20 +159,24 @@ twitch.on("message", async (channel, tags, message, self) => {
             return;
           }
 
-          twitch.say(
-            channel,
-            `@${tags.username} requested ${createdVideo.title}`
-          );
+          if (growthbook.isOn("bot-talk")) {
+            twitch.say(
+              channel,
+              `@${tags.username} requested ${createdVideo.title}`
+            );
+          }
         }
         return;
       }
 
       // if video is banned tell user to request again
       if (videoInDB.banned) {
-        twitch.say(
-          channel,
-          `@${tags.username} your song was not added, all songs must be PG/family friendly`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} your song was not added, all songs must be PG/family friendly`
+          );
+        }
         return;
       }
 
@@ -152,17 +187,23 @@ twitch.on("message", async (channel, tags, message, self) => {
       );
 
       if (!createRequest) {
-        twitch.say(channel, `Error creating request`);
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(channel, `Error creating request`);
+        }
         return;
       }
 
       const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
       if (!addedToQueue) {
-        twitch.say(channel, `Error adding to queue`);
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(channel, `Error adding to queue`);
+        }
       }
 
-      twitch.say(channel, `@${tags.username} requested ${videoInDB.title}`);
+      if (growthbook.isOn("bot-talk")) {
+        twitch.say(channel, `@${tags.username} requested ${videoInDB.title}`);
+      }
 
       return;
     }
@@ -171,10 +212,12 @@ twitch.on("message", async (channel, tags, message, self) => {
       const parsed = urlParser.parse(args[0]);
 
       if (!parsed) {
-        twitch.say(
-          channel,
-          `@${tags.username} please request with a youtube url`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} please request with a youtube url`
+          );
+        }
         return;
       }
 
@@ -189,10 +232,12 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       if (!userHasRequest) {
         // If a user doesn't have a request in the queue
-        twitch.say(
-          channel,
-          `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
+          );
+        }
         return;
       }
 
@@ -209,10 +254,12 @@ twitch.on("message", async (channel, tags, message, self) => {
       });
 
       if (videoAlreadyRequested) {
-        twitch.say(
-          channel,
-          `@${tags.username} this song has already been requested, please try another song`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} this song has already been requested, please try another song`
+          );
+        }
         return;
       }
 
@@ -236,11 +283,18 @@ twitch.on("message", async (channel, tags, message, self) => {
         );
 
         if (!requestUpdated) {
-          twitch.say(channel, `Error updating request`);
+          if (growthbook.isOn("bot-talk")) {
+            twitch.say(channel, `Error updating request`);
+          }
           return;
         }
 
-        twitch.say(channel, `@${tags.username} your request has been updated`);
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} your request has been updated`
+          );
+        }
 
         return;
       }
@@ -251,12 +305,15 @@ twitch.on("message", async (channel, tags, message, self) => {
       );
 
       if (!requestUpdated) {
-        twitch.say(channel, `Error updating request`);
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(channel, `Error updating request`);
+        }
         return;
       }
 
-      twitch.say(channel, `@${tags.username} your request has been updated`);
-
+      if (growthbook.isOn("bot-talk")) {
+        twitch.say(channel, `@${tags.username} your request has been updated`);
+      }
       return;
     }
 
@@ -272,10 +329,12 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       if (!userHasRequest) {
         // If a user doesn't have a request in the queue
-        twitch.say(
-          channel,
-          `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} I don't see a request from you in the queue, try doing !sr instead`
+          );
+        }
         return;
       }
 
@@ -291,25 +350,33 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       if (!removedFromQueue) {
         // Error removing request
-        twitch.say(channel, `Error removing request from queue`);
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(channel, `Error removing request from queue`);
+        }
         return;
       }
 
-      twitch.say(channel, `@${tags.username} request removed`);
+      if (growthbook.isOn("bot-talk")) {
+        twitch.say(channel, `@${tags.username} request removed`);
+      }
       return;
     }
 
     if (command === "song") {
       const queue = await getQueue();
       if (!queue) {
-        twitch.say(channel, "Error getting queue");
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(channel, "Error getting queue");
+        }
       }
 
       if (!queue.now_playing) {
-        twitch.say(
-          channel,
-          `@${tags.username} There's nothing playing at the moment`
-        );
+        if (growthbook.isOn("bot-talk")) {
+          twitch.say(
+            channel,
+            `@${tags.username} There's nothing playing at the moment`
+          );
+        }
         return;
       }
 
@@ -327,14 +394,20 @@ twitch.on("message", async (channel, tags, message, self) => {
           twitch.say(channel, "Error getting current song");
         });
 
-      return twitch.say(
-        channel,
-        `@${tags.username} Current Song: ${request?.Video.title}`
-      );
+      if (growthbook.isOn("bot-talk")) {
+        twitch.say(
+          channel,
+          `@${tags.username} Current Song: ${request?.Video.title}`
+        );
+      }
+      return;
     }
 
     if (command === "save") {
-      twitch.say(channel, "15 minutes can save you 15% on car insurace");
+      if (growthbook.isOn("bot-talk")) {
+        twitch.say(channel, "15 minutes can save you 15% on car insurace");
+      }
+      return;
     }
   }
 });
