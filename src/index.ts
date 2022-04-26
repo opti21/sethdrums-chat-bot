@@ -9,6 +9,13 @@ import { parseYTDuration } from "./utils";
 import express from "express";
 import Pusher from "pusher";
 import { GrowthBook } from "@growthbook/growthbook";
+import * as Sentry from "@sentry/node";
+import "@sentry/tracing";
+
+Sentry.init({
+  dsn: process.env.CHAT_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
 
 const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
 const growthbook = new GrowthBook({
@@ -21,7 +28,6 @@ const growthbook = new GrowthBook({
 });
 
 const getFeatures = async () => {
-  console.log("Getting features");
   await axios
     .get(FEATURES_ENDPOINT!)
     .then((res) => {
