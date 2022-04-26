@@ -362,7 +362,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       return;
     }
 
-    if (command === "song") {
+    if (command === "song" || command === "cs" || command === "currentsong") {
       const queue = await getQueue();
       if (!queue) {
         if (growthbook.isOn("bot-talk")) {
@@ -405,7 +405,7 @@ twitch.on("message", async (channel, tags, message, self) => {
 
     if (command === "save") {
       if (growthbook.isOn("bot-talk")) {
-        twitch.say(channel, "15 minutes can save you 15% on car insurace");
+        twitch.say(channel, "Coming Soon... PauseChamp");
       }
       return;
     }
