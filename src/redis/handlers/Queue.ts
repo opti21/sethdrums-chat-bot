@@ -59,7 +59,7 @@ async function createQueue(data: EntityCreationData) {
 async function lockQueue() {
   await connect();
 
-  pusher.trigger("presence-sethdrums-queue", "lock-queue", {
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "lock-queue", {
     beingUpdatedBy: "PEPEGA BOT",
   });
 
@@ -78,7 +78,7 @@ async function lockQueue() {
 async function unLockQueue() {
   await connect();
 
-  pusher.trigger("presence-sethdrums-queue", "unlock-queue", {
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "unlock-queue", {
     beingUpdatedBy: "",
   });
 
@@ -117,7 +117,7 @@ async function addToQueue(
 
     unLockQueue();
 
-    pusher.trigger("presence-sethdrums-queue", "queue-add", queue);
+    pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "queue-add", queue);
 
     return true;
   } catch (e) {
