@@ -162,7 +162,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           if (growthbook.isOn("bot-talk")) {
             twitch.say(
               channel,
-              `@${tags.username} requested ${createdVideo.title}`
+              `@${tags.username} your request has been added`
             );
           }
         }
@@ -202,7 +202,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       }
 
       if (growthbook.isOn("bot-talk")) {
-        twitch.say(channel, `@${tags.username} requested ${videoInDB.title}`);
+        twitch.say(channel, `@${tags.username} your song has been added`);
       }
 
       return;
