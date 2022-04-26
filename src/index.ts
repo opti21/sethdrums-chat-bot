@@ -403,7 +403,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       if (growthbook.isOn("bot-talk")) {
         twitch.say(
           channel,
-          `@${tags.username} Current Song: ${request?.Video.title}`
+          `@${tags.username} Current Song: ${request?.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id}`
         );
       }
       return;
