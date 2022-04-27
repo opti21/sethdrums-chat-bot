@@ -100,7 +100,7 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       const userAlreadyRequested = await prisma.request.findFirst({
         where: {
-          requested_by: tags.username,
+          requested_by_id: tags["user-id"],
           played: false,
         },
         include: {
@@ -114,9 +114,6 @@ twitch.on("message", async (channel, tags, message, self) => {
             youtube_id: parsed?.id,
           },
           played: false,
-        },
-        include: {
-          Video: true,
         },
       });
 
@@ -155,7 +152,8 @@ twitch.on("message", async (channel, tags, message, self) => {
         if (createdVideo) {
           const createdRequest = await createRequest(
             createdVideo.id,
-            tags.username ? tags.username : ""
+            tags.username!,
+            tags["user-id"]!
           );
 
           const addedToQueue = await addToQueue(createdRequest?.id.toString());
@@ -189,7 +187,8 @@ twitch.on("message", async (channel, tags, message, self) => {
       // If video is already in DB just create a request
       const createdRequest = await createRequest(
         videoInDB.id,
-        tags.username ? tags.username : ""
+        tags.username!,
+        tags["user-id"]!
       );
 
       if (!createRequest) {
@@ -229,7 +228,7 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       const userHasRequest = await prisma.request.findFirst({
         where: {
-          requested_by: tags.username,
+          requested_by_id: tags["user-id"],
         },
         include: {
           Video: true,
@@ -326,10 +325,7 @@ twitch.on("message", async (channel, tags, message, self) => {
     if (command === "wrongsong" || command === "remove") {
       const userHasRequest = await prisma.request.findFirst({
         where: {
-          requested_by: tags.username,
-        },
-        include: {
-          Video: true,
+          requested_by_id: tags["user-id"],
         },
       });
 
@@ -459,13 +455,15 @@ async function createVideo(
 
 async function createRequest(
   videoID: number,
-  username: string
+  username: string,
+  userID: string
 ): Promise<Request | undefined> {
   try {
     return await prisma.request.create({
       data: {
         video_id: videoID,
         requested_by: username,
+        requested_by_id: userID,
       },
     });
   } catch (e) {
