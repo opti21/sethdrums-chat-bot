@@ -4,7 +4,12 @@ import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import { YTApiResponse } from "./types";
-import { addToQueue, getQueue, removeFromOrder } from "./redis/handlers/Queue";
+import {
+  addToQueue,
+  getQueue,
+  openQueue,
+  removeFromOrder,
+} from "./redis/handlers/Queue";
 import { parseYTDuration } from "./utils";
 import express from "express";
 import Pusher from "pusher";
@@ -84,7 +89,39 @@ twitch.on("message", async (channel, tags, message, self) => {
     const args = message.slice(1).split(" ");
     const command = args.shift()?.toLowerCase();
 
+    if (
+      command === "open" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") == tags.username)
+    ) {
+      await openQueue().catch((err) => {
+        console.error(err);
+        twitch.say(channel, "Error opening queue");
+      });
+      twitch.say(channel, `@${tags.username} Queue is now open`);
+    }
+
+    if (
+      command === "close" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") == tags.username)
+    ) {
+      await openQueue().catch((err) => {
+        console.error(err);
+        twitch.say(channel, "Error opening queue");
+      });
+      twitch.say(channel, `@${tags.username} Queue is now closed`);
+    }
+
     if (command === "sr") {
+      const queue = await getQueue();
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Queue is closed`);
+      }
       // Check if valid youtube link then parse
       const parsed = urlParser.parse(args[0]);
 
@@ -214,6 +251,11 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "replace") {
+      const queue = await getQueue();
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Queue is closed`);
+      }
+
       const parsed = urlParser.parse(args[0]);
 
       if (!parsed) {
@@ -323,6 +365,10 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "wrongsong" || command === "remove") {
+      const queue = await getQueue();
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Queue is closed`);
+      }
       const userHasRequest = await prisma.request.findFirst({
         where: {
           requested_by_id: tags["user-id"],
@@ -366,6 +412,10 @@ twitch.on("message", async (channel, tags, message, self) => {
 
     if (command === "song" || command === "cs" || command === "currentsong") {
       const queue = await getQueue();
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Queue is closed`);
+      }
+
       if (!queue) {
         if (growthbook.isOn("bot-talk")) {
           twitch.say(channel, "Error getting queue");
@@ -406,6 +456,10 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "save") {
+      const queue = await getQueue();
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Queue is closed`);
+      }
       if (growthbook.isOn("bot-talk")) {
         twitch.say(channel, "Coming Soon... PauseChamp");
       }
