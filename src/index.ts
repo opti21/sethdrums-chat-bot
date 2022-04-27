@@ -6,6 +6,7 @@ import "js-video-url-parser/lib/provider/youtube";
 import { YTApiResponse } from "./types";
 import {
   addToQueue,
+  closeQueue,
   getQueue,
   openQueue,
   removeFromOrder,
@@ -101,6 +102,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         twitch.say(channel, "Error opening queue");
       });
       twitch.say(channel, `@${tags.username} Queue is now open`);
+      return;
     }
 
     if (
@@ -110,17 +112,19 @@ twitch.on("message", async (channel, tags, message, self) => {
         // brodacaster
         channel.replace("#", "") == tags.username)
     ) {
-      await openQueue().catch((err) => {
+      await closeQueue().catch((err) => {
         console.error(err);
         twitch.say(channel, "Error opening queue");
       });
       twitch.say(channel, `@${tags.username} Queue is now closed`);
+      return;
     }
 
     if (command === "sr") {
       const queue = await getQueue();
       if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} Queue is closed`);
+        twitch.say(channel, `@${tags.username} The queue is currently closed`);
+        return;
       }
       // Check if valid youtube link then parse
       const parsed = urlParser.parse(args[0]);
@@ -254,6 +258,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       const queue = await getQueue();
       if (!queue.is_open) {
         twitch.say(channel, `@${tags.username} Queue is closed`);
+        return;
       }
 
       const parsed = urlParser.parse(args[0]);
@@ -367,7 +372,8 @@ twitch.on("message", async (channel, tags, message, self) => {
     if (command === "wrongsong" || command === "remove") {
       const queue = await getQueue();
       if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} Queue is closed`);
+        twitch.say(channel, `@${tags.username} The queue is currently closed`);
+        return;
       }
       const userHasRequest = await prisma.request.findFirst({
         where: {
@@ -413,7 +419,8 @@ twitch.on("message", async (channel, tags, message, self) => {
     if (command === "song" || command === "cs" || command === "currentsong") {
       const queue = await getQueue();
       if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} Queue is closed`);
+        twitch.say(channel, `@${tags.username} The queue is currently closed`);
+        return;
       }
 
       if (!queue) {
@@ -458,7 +465,8 @@ twitch.on("message", async (channel, tags, message, self) => {
     if (command === "save") {
       const queue = await getQueue();
       if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} Queue is closed`);
+        twitch.say(channel, `@${tags.username} The queue is currently closed`);
+        return;
       }
       if (growthbook.isOn("bot-talk")) {
         twitch.say(channel, "Coming Soon... PauseChamp");
