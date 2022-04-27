@@ -9,6 +9,7 @@ interface Queue {
   is_updating?: boolean;
   being_updated_by?: string;
   now_playing?: string;
+  is_open: boolean;
 }
 
 class Queue extends Entity {}
@@ -20,6 +21,7 @@ const queueSchema = new Schema(
     is_updating: { type: "boolean" },
     being_updated_by: { type: "string" },
     now_playing: { type: "string" },
+    is_open: { type: "boolean" },
   },
   {
     dataStructure: "JSON",
@@ -54,6 +56,36 @@ async function createQueue(data: EntityCreationData) {
   const id = await repository.save(queue);
 
   return id;
+}
+
+async function openQueue() {
+  await connect();
+
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "open-queue", {});
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.is_open = true;
+
+  repository.save(queue);
+
+  return queue;
+}
+
+async function closeQueue() {
+  await connect();
+
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "close-queue", {});
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.is_open = false;
+
+  repository.save(queue);
 }
 
 async function lockQueue() {
@@ -160,6 +192,8 @@ export {
   Queue,
   getQueue,
   createQueue,
+  openQueue,
+  closeQueue,
   lockQueue,
   unLockQueue,
   addToQueue,
