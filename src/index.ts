@@ -1,4 +1,4 @@
-import { PrismaClient, Request, Video } from "@prisma/client";
+import { Prisma, PrismaClient, Request, Status, Video } from "@prisma/client";
 import tmi from "tmi.js";
 import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";

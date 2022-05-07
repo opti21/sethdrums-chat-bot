@@ -1,6 +1,6 @@
 {
   "name": "pepega-bot",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,7 @@
     "@sentry/tracing": "^6.19.7",
     "@types/express": "^4.17.13",
     "axios": "^0.25.0",
+    "bee-queue": "^1.4.0",
     "dotenv": "^15.0.0",
     "express": "^4.17.3",
     "ioredis": "^4.28.3",
