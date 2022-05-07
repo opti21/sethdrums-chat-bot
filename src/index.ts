@@ -1,4 +1,4 @@
-import { PrismaClient, Request, Video } from "@prisma/client";
+import { Prisma, PrismaClient, Request, Status, Video } from "@prisma/client";
 import tmi from "tmi.js";
 import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
@@ -15,13 +15,7 @@ import { parseYTDuration } from "./utils";
 import express from "express";
 import Pusher from "pusher";
 import { GrowthBook } from "@growthbook/growthbook";
-import * as Sentry from "@sentry/node";
 import "@sentry/tracing";
-
-Sentry.init({
-  dsn: process.env.CHAT_SENTRY_DSN,
-  tracesSampleRate: 1.0,
-});
 
 const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
 const growthbook = new GrowthBook({
