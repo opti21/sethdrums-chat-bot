@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "@growthbook/growthbook": "^0.17.0",
-    "@prisma/client": "^3.12.0",
+    "@prisma/client": "^3.14.0",
     "@sentry/node": "^6.19.7",
     "@sentry/tracing": "^6.19.7",
     "@types/express": "^4.17.13",
@@ -39,7 +39,7 @@
     "@typescript-eslint/parser": "^5.10.2",
     "eslint": "^8.8.0",
     "nodemon": "^2.0.15",
-    "prisma": "^3.12.0",
+    "prisma": "^3.14.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5"
   }
