@@ -190,6 +190,108 @@ async function removeFromOrder(
   }
 }
 
+async function updateOrder(updatedOrderData: any): Promise<boolean> {
+  try {
+    const updatedOrder = updatedOrderData.map((request: any) => {
+      return request.id;
+    });
+
+    lockQueue();
+
+    await connect();
+
+    const repository = client.fetchRepository(queueSchema);
+
+    const queue = await repository.fetch(QUEUE_ID);
+
+    queue.order = updatedOrder;
+
+    await repository.save(queue);
+
+    unLockQueue();
+
+    return true;
+  } catch (e) {
+    return Promise.reject("Error updating queue");
+  }
+}
+
+async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
+  try {
+    lockQueue();
+
+    await connect();
+
+    const repository = client.fetchRepository(queueSchema);
+
+    const queue = await repository.fetch(QUEUE_ID);
+
+    queue.order = updatedOrder;
+
+    await repository.save(queue);
+
+    unLockQueue();
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return Promise.reject("Error updating queue");
+  }
+}
+
+async function updateNowPlaying(requestID: string): Promise<boolean> {
+  try {
+    lockQueue();
+
+    await connect();
+
+    const repository = client.fetchRepository(queueSchema);
+
+    const queue = await repository.fetch(QUEUE_ID);
+
+    queue.now_playing = requestID;
+
+    await repository.save(queue);
+
+    unLockQueue();
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    return Promise.reject("Error updating now playing");
+  }
+}
+
+async function setPrioAsProcessing(requestID: string) {
+  await connect();
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.currently_processing.push(requestID);
+
+  await repository.save(queue);
+}
+
+async function removePrioFromProcessing(requestID: string) {
+  await connect();
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  if (queue.order) {
+    for (let i = 0; i < queue.currently_processing.length; i++) {
+      if (queue.currently_processing[i] === requestID) {
+        queue.currently_processing.splice(i, 1);
+      }
+    }
+  }
+
+  await repository.save(queue);
+}
+
 export {
   Queue,
   getQueue,
@@ -200,4 +302,9 @@ export {
   unLockQueue,
   addToQueue,
   removeFromOrder,
+  updateOrder,
+  updateOrderIdStrings,
+  updateNowPlaying,
+  setPrioAsProcessing,
+  removePrioFromProcessing,
 };
