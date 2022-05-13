@@ -19,6 +19,7 @@ model Request {
   played_at       DateTime?
   vod_link        String?
   priority        Boolean          @default(false)
+  raffle_prio     Boolean          @default(false)
   mod_prio        Boolean          @default(false)
   requested_by_id String?
   Video           Video            @relation(fields: [video_id], references: [id])
