@@ -82,7 +82,6 @@ twitch.connect().catch(console.error);
 
 let raffleOpen = false;
 let raffleSecondsLeft: number;
-
 let raffleIntervalCheck: ReturnType<typeof setTimeout>;
 
 twitch.on("message", async (channel, tags, message, self) => {
@@ -493,7 +492,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         channel.replace("#", "") === tags.username)
     ) {
       const splitStr = message.split(" ");
-      let duration = parseInt(splitStr[1], 10);
+      const duration = parseInt(splitStr[1], 10);
 
       if (raffleOpen) {
         twitch.say(
