@@ -89,12 +89,17 @@ twitch.on("message", async (channel, tags, message, self) => {
       (tags.mod ||
         tags.username === "opti_21" ||
         // brodacaster
-        channel.replace("#", "") == tags.username)
+        channel.replace("#", "") === tags.username)
     ) {
       await openQueue().catch((err) => {
         console.error(err);
         twitch.say(channel, "Error opening queue");
       });
+      pusher.trigger(
+        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
+        "update-queue",
+        {}
+      );
       twitch.say(channel, `@${tags.username} Queue is now open`);
       return;
     }
@@ -110,6 +115,11 @@ twitch.on("message", async (channel, tags, message, self) => {
         console.error(err);
         twitch.say(channel, "Error opening queue");
       });
+      pusher.trigger(
+        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
+        "update-queue",
+        {}
+      );
       twitch.say(channel, `@${tags.username} Queue is now closed`);
       return;
     }
