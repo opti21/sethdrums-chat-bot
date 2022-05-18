@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/opti21/pepega-chat/compare/v0.2.1...v0.2.2) (2022-05-18)
+
+
+### Features
+
+* add polo(ping) command ([edc56d7](https://github.com/opti21/pepega-chat/commit/edc56d7f5dca62df5f8244ff121d445d5d5f6839))
+
+
+### Bug Fixes
+
+* include mod prios in raffles ([f962904](https://github.com/opti21/pepega-chat/commit/f962904451c29277a3cc5ee814f5cde8cadd6257))
+* Make bot use announce feature ([41cda42](https://github.com/opti21/pepega-chat/commit/41cda4287ca7c7423d95676c4837c57667ffe681))
+
 ### 0.2.1 (2022-05-13)
 
 
