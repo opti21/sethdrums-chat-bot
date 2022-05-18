@@ -485,6 +485,20 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (
+      command === "marco" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") === tags.username)
+    ) {
+      twitch.say(
+        channel,
+        `MrDestructoid POLO! - v${process.env.npm_package_version}`
+      );
+      return;
+    }
+
+    if (
       command === "songraffle" &&
       (tags.mod ||
         tags.username === "opti_21" ||
