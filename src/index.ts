@@ -14,7 +14,7 @@ import {
   setPrioAsProcessing,
   updateOrderIdStrings,
 } from "./redis/handlers/Queue";
-import { parseYTDuration } from "./utils";
+import { parseYTDuration } from "./utils/utils";
 import express from "express";
 import Pusher from "pusher";
 import { GrowthBook } from "@growthbook/growthbook";
