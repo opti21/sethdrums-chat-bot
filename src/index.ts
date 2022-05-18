@@ -548,7 +548,6 @@ twitch.on("message", async (channel, tags, message, self) => {
             where: {
               played: false,
               priority: false,
-              mod_prio: false,
             },
           })
           .catch((err) => {
