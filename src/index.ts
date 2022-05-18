@@ -14,7 +14,7 @@ import {
   setPrioAsProcessing,
   updateOrderIdStrings,
 } from "./redis/handlers/Queue";
-import { parseYTDuration } from "./utils";
+import { parseYTDuration } from "./utils/utils";
 import express from "express";
 import Pusher from "pusher";
 import { GrowthBook } from "@growthbook/growthbook";
@@ -485,6 +485,20 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (
+      command === "marco" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") === tags.username)
+    ) {
+      twitch.say(
+        channel,
+        `MrDestructoid POLO! - v${process.env.npm_package_version}`
+      );
+      return;
+    }
+
+    if (
       command === "songraffle" &&
       (tags.mod ||
         tags.username === "opti_21" ||
@@ -522,7 +536,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       raffleSecondsLeft = duration;
       twitch.say(
         channel,
-        `PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthHype`
+        `/announce PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthHype`
       );
 
       raffleIntervalCheck = setInterval(() => {
@@ -532,7 +546,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           console.log("raffle is open");
           twitch.say(
             channel,
-            `The raffle for the next song will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthPog`
+            `/announce The raffle for the next song will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthPog`
           );
         }
       }, 10000);
@@ -541,14 +555,16 @@ twitch.on("message", async (channel, tags, message, self) => {
         raffleOpen = false;
         clearInterval(raffleIntervalCheck);
 
-        twitch.say(channel, "The raffle has closed! Picking winner...");
+        twitch.say(
+          channel,
+          "/announce The raffle has closed! Picking winner..."
+        );
 
         const nonPrioRequests = await prisma.request
           .findMany({
             where: {
               played: false,
               priority: false,
-              mod_prio: false,
             },
           })
           .catch((err) => {
@@ -569,7 +585,7 @@ twitch.on("message", async (channel, tags, message, self) => {
 
         twitch.say(
           channel,
-          `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sthPeepo sthHype`
+          `/announce The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sthPeepo sthHype`
         );
 
         const currentQueue = await getQueue();
@@ -604,6 +620,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         await updateOrderIdStrings(updatedOrder);
         await removePrioFromProcessing(winningRequest.id.toString());
       }, duration * 1000);
+      return;
     }
   }
 });
