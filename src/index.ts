@@ -153,18 +153,14 @@ twitch.on("message", async (channel, tags, message, self) => {
       }
 
       if (!queue) {
-        if (growthbook.isOn("bot-talk")) {
-          twitch.say(channel, "Error getting queue");
-        }
+        twitch.say(channel, "Error getting queue");
       }
 
       if (!queue.now_playing) {
-        if (growthbook.isOn("bot-talk")) {
-          twitch.say(
-            channel,
-            `@${tags.username} There's nothing playing at the moment`
-          );
-        }
+        twitch.say(
+          channel,
+          `@${tags.username} There's nothing playing at the moment`
+        );
         return;
       }
 
@@ -182,12 +178,10 @@ twitch.on("message", async (channel, tags, message, self) => {
           twitch.say(channel, "Error getting current song");
         });
 
-      if (growthbook.isOn("bot-talk")) {
-        twitch.say(
-          channel,
-          `@${tags.username} Current Song: ${request?.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id}`
-        );
-      }
+      twitch.say(
+        channel,
+        `@${tags.username} Current Song: ${request?.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id} Requested By: ${request?.requested_by}`
+      );
       return;
     }
 
@@ -197,9 +191,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         twitch.say(channel, `@${tags.username} The queue is currently closed`);
         return;
       }
-      if (growthbook.isOn("bot-talk")) {
-        twitch.say(channel, "Coming Soon... PauseChamp");
-      }
+      twitch.say(channel, "Coming Soon... PauseChamp");
       return;
     }
 
@@ -255,7 +247,7 @@ twitch.on("message", async (channel, tags, message, self) => {
       raffleSecondsLeft = duration;
       twitch.say(
         channel,
-        `/announce PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthHype`
+        `/announce PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthHype`
       );
 
       raffleIntervalCheck = setInterval(() => {
@@ -265,7 +257,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           console.log("raffle is open");
           twitch.say(
             channel,
-            `/announce The raffle for the next song will end in ${raffleSecondsLeft} seconds. Enter by typing "!sr youtubeurl" sthPog`
+            `/announce The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthPog`
           );
         }
       }, 10000);

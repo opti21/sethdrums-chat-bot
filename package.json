@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "deploy": "prisma migrate deploy",
-    "build": "yarn run lint && tsc",
+    "build": "pnpm run lint && tsc",
     "clean": "rm -rf dist build",
     "dev": "nodemon --config nodemon.json src/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts",
