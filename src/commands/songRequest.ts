@@ -47,7 +47,7 @@ const handleSongRequest = async (
   if (userAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} looks like you already have a song in the queue, once your request has been played or removed, you can request another`
+      `@${tags.username} looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your request has been played or removed with !remove you can request another`
     );
     return;
   }
