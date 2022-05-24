@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.3.0](https://github.com/opti21/pepega-chat/compare/v0.2.3...v0.3.0) (2022-05-24)
+
+
+### Features
+
+* Add twitch creds to schema ([2cf3353](https://github.com/opti21/pepega-chat/commit/2cf3353868f48cd045cca41f2a4244b14c3b05a4))
+
+
+### Bug Fixes
+
+* eslint issue ([5adc473](https://github.com/opti21/pepega-chat/commit/5adc47309f9ff5967330cf796161ace65901a2b4))
+
 ### [0.2.3](https://github.com/opti21/pepega-chat/compare/v0.2.2...v0.2.3) (2022-05-19)
 
 ### [0.2.2](https://github.com/opti21/pepega-chat/compare/v0.2.1...v0.2.2) (2022-05-18)
