@@ -1,5 +1,5 @@
 import { Entity, EntityCreationData, Schema } from "redis-om";
-import { AlreadyRequestedResponse } from "types";
+import { AlreadyRequestedResponse } from "../../utils/types";
 import { client, connect } from "../redis";
 import { removeFromOrder } from "./Queue";
 import { getVideo, Video } from "./Video";
