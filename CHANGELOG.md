@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.1](https://github.com/opti21/pepega-chat/compare/v0.4.0...v0.4.1) (2022-05-25)
+
+
+### Features
+
+* save song command ([80bb300](https://github.com/opti21/pepega-chat/commit/80bb3006214e609e208b0d53ef34bd213839c23f))
+
+
+### Bug Fixes
+
+* revert tsconfig ([9e56f1f](https://github.com/opti21/pepega-chat/commit/9e56f1fbae4d06529b4c81ec36c96ca9718ac07f))
+
 ## [0.4.0](https://github.com/opti21/pepega-chat/compare/v0.3.1...v0.4.0) (2022-05-25)
 
 ### [0.3.1](https://github.com/opti21/pepega-chat/compare/v0.3.0...v0.3.1) (2022-05-24)
