@@ -23,6 +23,7 @@ import { prisma } from "./utils/prisma";
 import { createVideo } from "./utils/createVideo";
 import handleReplace from "./commands/replaceRequest";
 import handleRemove from "./commands/wrongSong";
+import handleCurrentSong from "./commands/currentSong";
 
 const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
 const growthbook = new GrowthBook({
@@ -146,53 +147,10 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "song" || command === "cs" || command === "currentsong") {
-      const queue = await getQueue();
-      if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} The queue is currently closed`);
-        return;
-      }
-
-      if (!queue) {
-        twitch.say(channel, "Error getting queue");
-      }
-
-      if (!queue.now_playing) {
-        twitch.say(
-          channel,
-          `@${tags.username} There's nothing playing at the moment`
-        );
-        return;
-      }
-
-      const request = await prisma.request
-        .findFirst({
-          where: {
-            id: parseInt(queue.now_playing),
-          },
-          include: {
-            Video: true,
-          },
-        })
-        .catch((err) => {
-          console.error(err);
-          twitch.say(channel, "Error getting current song");
-        });
-
-      twitch.say(
-        channel,
-        `@${tags.username} Current Song: ${request?.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id} Requested By: ${request?.requested_by}`
-      );
-      return;
+      handleCurrentSong(args, twitch, channel, tags);
     }
 
     if (command === "save") {
-      const queue = await getQueue();
-      if (!queue.is_open) {
-        twitch.say(channel, `@${tags.username} The queue is currently closed`);
-        return;
-      }
-      twitch.say(channel, "Coming Soon... PauseChamp");
-      return;
     }
 
     if (
