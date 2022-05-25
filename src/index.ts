@@ -24,6 +24,7 @@ import { createVideo } from "./utils/createVideo";
 import handleReplace from "./commands/replaceRequest";
 import handleRemove from "./commands/wrongSong";
 import handleCurrentSong from "./commands/currentSong";
+import handleSaveSong from "./commands/saveSong";
 
 const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
 const growthbook = new GrowthBook({
@@ -151,6 +152,7 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (command === "save") {
+      handleSaveSong(args, twitch, channel, tags);
     }
 
     if (
