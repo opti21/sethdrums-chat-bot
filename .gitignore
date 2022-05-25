@@ -6,7 +6,7 @@
 /dist/
 /docs/
 .idea/*
-/localUtils/
+src/localUtils/
 
 .DS_Store
 coverage

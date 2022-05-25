@@ -1,5 +1,5 @@
-import { Request } from "redis/handlers/Request";
-import { Video } from "redis/handlers/Video";
+import { Request } from "../redis/handlers/Request";
+import { Video } from "../redis/handlers/Video";
 
 export interface YTApiResponse {
   kind: string;

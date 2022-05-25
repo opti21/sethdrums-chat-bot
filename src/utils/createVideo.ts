@@ -1,6 +1,6 @@
 import { Video } from "@prisma/client";
 import axios from "axios";
-import { YTApiResponse } from "types";
+import { YTApiResponse } from "./types";
 import { parseYTDuration } from "./utils";
 import { prisma } from "../utils/prisma";
 

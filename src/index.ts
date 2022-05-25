@@ -3,7 +3,7 @@ import tmi from "tmi.js";
 import axios from "axios";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
-import { YTApiResponse } from "./types";
+import { YTApiResponse } from "./utils/types";
 import {
   addToQueue,
   closeQueue,
@@ -20,7 +20,7 @@ import Pusher from "pusher";
 import { GrowthBook } from "@growthbook/growthbook";
 import handleSongRequest from "./commands/songRequest";
 import { prisma } from "./utils/prisma";
-import { createVideo } from "utils/createVideo";
+import { createVideo } from "./utils/createVideo";
 import handleReplace from "./commands/replaceRequest";
 import handleRemove from "./commands/wrongSong";
 
