@@ -12,7 +12,7 @@ import { pusher } from "../index";
 
 let raffleOpen = false;
 let raffleSecondsLeft: number;
-let raffleIntervalCheck: ReturnType<typeof setInterval>;
+let raffleInterval: ReturnType<typeof setInterval>;
 let rafflePickTimeout: ReturnType<typeof setTimeout>;
 
 const handleRaffle = async (
@@ -25,7 +25,7 @@ const handleRaffle = async (
 
   if (args[0] === "cancel") {
     raffleOpen = false;
-    clearInterval(raffleIntervalCheck);
+    clearInterval(raffleInterval);
     clearTimeout(rafflePickTimeout);
 
     twitch.say(channel, "Raffle has been cancelled.");
@@ -67,7 +67,7 @@ const handleRaffle = async (
     `PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sthHype`
   );
 
-  raffleIntervalCheck = setInterval(() => {
+  raffleInterval = setInterval(() => {
     raffleSecondsLeft -= 10;
 
     if (raffleOpen) {
@@ -80,7 +80,7 @@ const handleRaffle = async (
 
   rafflePickTimeout = setTimeout(async () => {
     raffleOpen = false;
-    clearInterval(raffleIntervalCheck);
+    clearInterval(raffleInterval);
 
     twitch.say(channel, "The raffle has closed! Picking winner...");
 
