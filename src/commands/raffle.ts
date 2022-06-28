@@ -53,7 +53,7 @@ const handleRaffle = async (
 
   twitch.say(
     channel,
-    `/announce PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthHype`
+    `PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthHype`
   );
 
   raffleIntervalCheck = setInterval(() => {
@@ -62,7 +62,7 @@ const handleRaffle = async (
     if (raffleOpen) {
       twitch.say(
         channel,
-        `/announce The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthPog`
+        `The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthPog`
       );
     }
   }, 10000);
@@ -71,7 +71,7 @@ const handleRaffle = async (
     raffleOpen = false;
     clearInterval(raffleIntervalCheck);
 
-    twitch.say(channel, "/announce The raffle has closed! Picking winner...");
+    twitch.say(channel, "The raffle has closed! Picking winner...");
 
     const nonPrioRequests = await prisma.request
       .findMany({
@@ -102,7 +102,7 @@ const handleRaffle = async (
 
     twitch.say(
       channel,
-      `/announce The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sthPeepo sthHype`
+      `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sthPeepo sthHype`
     );
 
     const currentQueue = await getQueue();
