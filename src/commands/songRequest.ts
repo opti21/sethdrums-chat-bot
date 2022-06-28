@@ -118,7 +118,10 @@ const handleSongRequest = async (
     twitch.say(channel, `Error adding to queue`);
   }
 
-  twitch.say(channel, `@${tags.username} your song has been added`);
+  twitch.say(
+    channel,
+    `@${tags.username} your song has been added to the suggestion list`
+  );
 
   return;
 };
