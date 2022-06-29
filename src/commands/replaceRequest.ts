@@ -28,6 +28,7 @@ const handleReplace = async (
   const userHasRequest = await prisma.request.findFirst({
     where: {
       requested_by_id: tags["user-id"],
+      played: false,
     },
     include: {
       Video: true,

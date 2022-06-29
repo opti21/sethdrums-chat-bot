@@ -1,3 +1,4 @@
+import { pusher } from "../index";
 import { prisma } from "./prisma";
 
 export async function updateRequest(
@@ -5,6 +6,7 @@ export async function updateRequest(
   videoID: number
 ): Promise<boolean> {
   try {
+    console.log("Update request");
     await prisma.request.update({
       where: {
         id: requestID,
@@ -13,6 +15,8 @@ export async function updateRequest(
         video_id: videoID,
       },
     });
+
+    pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "update-queue", {});
 
     return true;
   } catch (e) {
