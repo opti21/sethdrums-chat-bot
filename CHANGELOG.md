@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.4.2](https://github.com/opti21/pepega-chat/compare/v0.4.1...v0.4.2) (2022-06-29)
+
+
+### Features
+
+* add cancel to raffle ([7577725](https://github.com/opti21/pepega-chat/commit/757772526a5289403a21aada335be4d9c9fe5de3))
+
+
+### Bug Fixes
+
+* actually replace the correct request ([d1e1f99](https://github.com/opti21/pepega-chat/commit/d1e1f99538fc68cbe5392dee37b9223cc1ab97fc))
+* make raffle messages not announcements ([6f22e3d](https://github.com/opti21/pepega-chat/commit/6f22e3d76be3f5d5573c3f6d9cc423dab89d35d6))
+
 ### [0.4.1](https://github.com/opti21/pepega-chat/compare/v0.4.0...v0.4.1) (2022-05-25)
 
 
