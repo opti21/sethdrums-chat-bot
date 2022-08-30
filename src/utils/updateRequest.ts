@@ -6,7 +6,6 @@ export async function updateRequest(
   videoID: number
 ): Promise<boolean> {
   try {
-    console.log("Update request");
     await prisma.request.update({
       where: {
         id: requestID,

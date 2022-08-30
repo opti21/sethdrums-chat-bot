@@ -27,30 +27,6 @@ import handleCurrentSong from "./commands/currentSong";
 import handleSaveSong from "./commands/saveSong";
 import handleRaffle from "./commands/raffle";
 
-const FEATURES_ENDPOINT = process.env.NEXT_PUBLIC_GROWTHBOOK_ENDPOINT;
-const growthbook = new GrowthBook({
-  trackingCallback: (experiment, result) => {
-    console.log({
-      experimentId: experiment.key,
-      variationId: result.variationId,
-    });
-  },
-});
-
-const getFeatures = async () => {
-  await axios
-    .get(FEATURES_ENDPOINT!)
-    .then((res) => {
-      const json = res.data;
-      growthbook.setFeatures(json.features);
-    })
-    .catch(() => {
-      console.log("Failed to fetch feature definitions from GrowthBook");
-    });
-};
-
-setInterval(getFeatures, 5000);
-
 if (
   !process.env.PUSHER_APP_ID ||
   !process.env.PUSHER_KEY ||

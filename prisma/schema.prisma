@@ -105,6 +105,7 @@ model TwitchCreds {
 model SavedSongs {
   id           Int     @id @default(autoincrement())
   twitch_id    String  @unique
+  saved_at     DateTime @default(now())
   saved_videos Video[]
 }
 
