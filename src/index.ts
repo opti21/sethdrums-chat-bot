@@ -26,6 +26,7 @@ import handleRemove from "./commands/wrongSong";
 import handleCurrentSong from "./commands/currentSong";
 import handleSaveSong from "./commands/saveSong";
 import handleRaffle from "./commands/raffle";
+import handleWhenNextStream from "./commands/nextStream";
 
 if (
   !process.env.PUSHER_APP_ID ||
@@ -150,6 +151,16 @@ twitch.on("message", async (channel, tags, message, self) => {
         channel.replace("#", "") === tags.username)
     ) {
       handleRaffle(args, twitch, channel, tags);
+    }
+
+    if (
+      (command === "when" || command === "schedule" || command === "next") &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") === tags.username)
+    ) {
+      handleWhenNextStream(args, twitch, channel, tags);
     }
   }
 });
