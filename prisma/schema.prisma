@@ -99,12 +99,13 @@ model Mod {
 model TwitchCreds {
   id           Int    @id @default(autoincrement())
   access_token String
-  expires_in   Int
+  expires      Int
 }
 
 model SavedSongs {
   id           Int     @id @default(autoincrement())
   twitch_id    String  @unique
+  saved_at     DateTime @default(now())
   saved_videos Video[]
 }
 

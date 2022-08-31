@@ -21,7 +21,6 @@ const handleRaffle = async (
   channel: string,
   tags: ChatUserstate
 ) => {
-  console.log(args);
 
   if (args[0] === "cancel") {
     raffleOpen = false;
