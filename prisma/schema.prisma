@@ -99,7 +99,8 @@ model Mod {
 model TwitchCreds {
   id           Int    @id @default(autoincrement())
   access_token String
-  expires      Int
+  expires_in      Int?
+  expires      Int?
 }
 
 model SavedSongs {

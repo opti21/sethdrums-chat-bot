@@ -26,9 +26,16 @@ const handleWhenNextStream = async (
 
     twitchCreds = await prisma.twitchCreds.findFirst();
 
-    if (!twitchCreds || twitchCreds.expires < Math.floor(Date.now() / 1000)) {
+    if (!twitchCreds) {
       console.log("no creds");
       twitchCreds = await getNewToken();
+    }
+    
+    if (twitchCreds?.expires) {
+        if (twitchCreds?.expires < Math.floor(Date.now() / 1000)) {
+            console.log("twitch creds expired")
+            twitchCreds = await getNewToken()
+        }
     }
 
     const schedule:any = await getSchedule(twitchCreds);
