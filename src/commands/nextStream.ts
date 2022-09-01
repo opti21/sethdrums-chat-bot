@@ -40,21 +40,28 @@ const handleWhenNextStream = async (
 
     const schedule:any = await getSchedule(twitchCreds);
 
-    console.log(schedule.data.segments[0].start_time);
-    const startTime = dayjs(schedule.data.segments[0].start_time).tz("America/Chicago")
-    const secondStartTime = dayjs(schedule.data.segments[1].start_time).tz("America/Chicago")
+    const removedCanceled = schedule.data.segments.filter((segemnt: any) => segemnt.canceled_until === null)
+    console.log(removedCanceled)
+
+    const startTime = dayjs(removedCanceled[0].start_time).tz("America/Chicago")
     // const endTime = dayjs(schedule.data.segments[0].start_time).tz("America/Chicago")
 
     // const scheduledLive = dayjs().isBetween(startTime, endTime)
 
     const startDateFormated = startTime.format("ddd[,] MMM Do [at] hA z")
-    const secondStartDateFormated = secondStartTime.format("ddd[,] MMM Do [at] hA z")
+    const fromNow = dayjs(startTime).diff(dayjs(), "h")
 
-    // console.log(dayjs(startTime).fromNow())
+    console.log(fromNow)
 
     if (dayjs().isAfter(startTime)) {
         // If the first item in schdule is the currently live stream pull next stream date
-        return twitch.say(channel, `Seth's next stream is scheduled for ${secondStartDateFormated}`)
+        if (removedCanceled.length > 1) {
+          const secondStartTime = dayjs(removedCanceled[1].start_time).tz("America/Chicago")
+          const secondStartDateFormated = secondStartTime.format("ddd[,] MMM Do [at] hA z")
+          return twitch.say(channel, `Seth's next stream is scheduled for ${secondStartDateFormated}`)
+        }
+
+        return twitch.say(channel, `There's currently no streams scheduled`)
     }
 
     return twitch.say(channel, `Seth's next stream is scheduled for ${startDateFormated}`)
