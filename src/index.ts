@@ -154,11 +154,7 @@ twitch.on("message", async (channel, tags, message, self) => {
     }
 
     if (
-      (command === "when" || command === "schedule" || command === "next") &&
-      (tags.mod ||
-        tags.username === "opti_21" ||
-        // brodacaster
-        channel.replace("#", "") === tags.username)
+      (command === "when" || command === "schedule" || command === "next")
     ) {
       handleWhenNextStream(args, twitch, channel, tags);
     }
