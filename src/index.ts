@@ -153,11 +153,11 @@ twitch.on("message", async (channel, tags, message, self) => {
       handleRaffle(args, twitch, channel, tags);
     }
 
-    if (
-      (command === "when" || command === "schedule" || command === "next")
-    ) {
-      handleWhenNextStream(args, twitch, channel, tags);
-    }
+    // if (
+    //   (command === "when" || command === "schedule" || command === "next")
+    // ) {
+    //   handleWhenNextStream(args, twitch, channel, tags);
+    // }
   }
 });
 
