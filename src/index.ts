@@ -158,20 +158,8 @@ twitch.on("message", async (channel, tags, message, self) => {
         prisma.mod.createMany({
           data: [
             {
-              name: "Myriadpro86",
-              twitch_id: "256486039",
-            },
-            {
-              name: "hubadub1234",
-              twitch_id: "171308923",
-            },
-            {
-              name: "bkind2all",
-              twitch_id: "514087129",
-            },
-            {
-              name: "Felivi",
-              twitch_id: "36879082",
+              name: "Liedena",
+              twitch_id: "68729298",
             },
           ],
         });
