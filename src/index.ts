@@ -153,18 +153,18 @@ twitch.on("message", async (channel, tags, message, self) => {
       handleRaffle(args, twitch, channel, tags);
     }
 
-    if (command === "addmods") {
-      if (tags.mod || tags.username === "opti_21") {
-        prisma.mod.createMany({
-          data: [
-            {
-              name: "Liedena",
-              twitch_id: "68729298",
-            },
-          ],
-        });
-      }
-    }
+    // if (command === "addmods") {
+    //   if (tags.mod || tags.username === "opti_21") {
+    //     prisma.mod.createMany({
+    //       data: [
+    //         {
+    //           name: "",
+    //           twitch_id: "",
+    //         },
+    //       ],
+    //     });
+    //   }
+    // }
 
     // if (
     //   (command === "when" || command === "schedule" || command === "next")
