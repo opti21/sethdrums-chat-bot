@@ -1,32 +1,14 @@
-import { Prisma, PrismaClient, Request, Status, Video } from "@prisma/client";
 import tmi from "tmi.js";
-import axios from "axios";
-import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
-import { YTApiResponse } from "./utils/types";
-import {
-  addToQueue,
-  closeQueue,
-  getQueue,
-  openQueue,
-  removeFromOrder,
-  removePrioFromProcessing,
-  setPrioAsProcessing,
-  updateOrderIdStrings,
-} from "./redis/handlers/Queue";
-import { parseYTDuration } from "./utils/utils";
+import { closeQueue, openQueue } from "./redis/handlers/Queue";
 import express from "express";
 import Pusher from "pusher";
-import { GrowthBook } from "@growthbook/growthbook";
 import handleSongRequest from "./commands/songRequest";
-import { prisma } from "./utils/prisma";
-import { createVideo } from "./utils/createVideo";
 import handleReplace from "./commands/replaceRequest";
 import handleRemove from "./commands/wrongSong";
 import handleCurrentSong from "./commands/currentSong";
 import handleSaveSong from "./commands/saveSong";
 import handleRaffle from "./commands/raffle";
-import handleWhenNextStream from "./commands/nextStream";
 
 if (
   !process.env.PUSHER_APP_ID ||

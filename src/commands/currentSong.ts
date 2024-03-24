@@ -40,9 +40,14 @@ const handleCurrentSong = async (
       twitch.say(channel, "Error getting current song");
     });
 
+  if (!request || !request.Video) {
+    twitch.say(channel, "Error getting current song");
+    return;
+  }
+
   twitch.say(
     channel,
-    `@${tags.username} Current Song: ${request?.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id} Requested By: ${request?.requested_by}`
+    `@${tags.username} Current Song: ${request.Video.title}: https://www.youtube.com/watch?v=${request?.Video.youtube_id} Requested By: ${request?.requested_by}`
   );
   return;
 };

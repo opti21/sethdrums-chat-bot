@@ -41,12 +41,12 @@ const handleSaveSong = async (
       twitch.say(channel, "Error saving current song");
     });
 
-  console.log(currentSong?.video_id);
-
   if (!currentSong) {
     twitch.say(channel, "Error saving current song");
     return;
   }
+
+  console.log(currentSong?.video_id);
 
   const userExists = await prisma.savedSongs.findFirst({
     where: {
