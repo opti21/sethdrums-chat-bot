@@ -11,3 +11,9 @@ src/localUtils/
 .DS_Store
 coverage
 *.log
+
+# database
+/prisma/dev.db
+/prisma/dev.db-journal
+
+/prisma/old-migrations/
