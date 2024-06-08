@@ -95,7 +95,7 @@ const handleSongRequest = async (
   if (videoInDB.banned) {
     twitch.say(
       channel,
-      `@${tags.username} your song was not added, all songs must be PG/family friendly`
+      `@${tags.username} your request does not follow our rules. Please check our !rules before submitting. Thank you sthHeart`
     );
     return;
   }
