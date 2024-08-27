@@ -14,9 +14,21 @@ const handleSongRequest = async (
 ) => {
   const queue = await getQueue();
   if (!queue.is_open) {
-    twitch.say(channel, `@${tags.username} The queue is currently closed`);
+    twitch.say(
+      channel,
+      `@${tags.username} KEKWait The suggestion list is currently closed`
+    );
     return;
   }
+
+  if (!queue.is_paused) {
+    twitch.say(
+      channel,
+      `@${tags.username} KEKWait The suggestion list is currently paused, please wait for it to be resumed`
+    );
+    return;
+  }
+
   // Check if valid youtube link then parse
   const parsed = urlParser.parse(args[0]);
 
@@ -47,7 +59,7 @@ const handleSongRequest = async (
   if (userAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your request has been played or removed with !remove you can request another`
+      `@${tags.username} KEKWait looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your request has been played or removed with !remove you can request another`
     );
     return;
   }
@@ -55,7 +67,7 @@ const handleSongRequest = async (
   if (videoAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} this song has already been requested, please try another song`
+      `@${tags.username} this song has already been requested, please try another song peepoShy`
     );
     return;
   }
@@ -82,11 +94,17 @@ const handleSongRequest = async (
       const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
       if (!addedToQueue) {
-        twitch.say(channel, `Error adding to queue`);
+        twitch.say(
+          channel,
+          `Error adding to Suggestion List DinkDank @opti_21`
+        );
         return;
       }
 
-      twitch.say(channel, `@${tags.username} your request has been added`);
+      twitch.say(
+        channel,
+        `@${tags.username} your request has been added POGGIES`
+      );
     }
     return;
   }
@@ -108,19 +126,19 @@ const handleSongRequest = async (
   );
 
   if (!createRequest) {
-    twitch.say(channel, `Error creating request`);
+    twitch.say(channel, `Error creating request DinkDank @opti_21`);
     return;
   }
 
   const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
   if (!addedToQueue) {
-    twitch.say(channel, `Error adding to queue`);
+    twitch.say(channel, `Error adding to Suggestion List DinkDank @opti_21`);
   }
 
   twitch.say(
     channel,
-    `@${tags.username} your song has been added to the suggestion list`
+    `@${tags.username} your song has been added to the suggestion list POGGIES`
   );
 
   return;

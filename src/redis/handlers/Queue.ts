@@ -7,6 +7,7 @@ const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
 interface Queue {
   order?: string[];
   is_updating?: boolean;
+  is_paused?: boolean;
   being_updated_by?: string;
   now_playing?: string;
   is_open: boolean;
@@ -20,6 +21,7 @@ const queueSchema = new Schema(
   {
     order: { type: "string[]" },
     is_updating: { type: "boolean" },
+    is_paused: { type: "boolean" },
     being_updated_by: { type: "string" },
     now_playing: { type: "string" },
     is_open: { type: "boolean" },
@@ -122,6 +124,38 @@ async function unLockQueue() {
 
   queue.being_updated_by = "";
   queue.is_updating = false;
+
+  repository.save(queue);
+
+  return queue;
+}
+
+async function pauseQueue() {
+  await connect();
+
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "pause-queue", {});
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.is_paused = true;
+
+  repository.save(queue);
+
+  return queue;
+}
+
+async function resumeQueue() {
+  await connect();
+
+  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "resume-queue", {});
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.is_paused = false;
 
   repository.save(queue);
 
@@ -300,6 +334,8 @@ export {
   closeQueue,
   lockQueue,
   unLockQueue,
+  pauseQueue,
+  resumeQueue,
   addToQueue,
   removeFromOrder,
   updateOrder,
