@@ -21,7 +21,7 @@ const handleSongRequest = async (
     return;
   }
 
-  if (!queue.is_paused) {
+  if (queue.is_paused) {
     twitch.say(
       channel,
       `@${tags.username} KEKWait The suggestion list is currently paused, please wait for it to be resumed`
