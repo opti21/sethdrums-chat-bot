@@ -2,6 +2,7 @@ import tmi from "tmi.js";
 import "js-video-url-parser/lib/provider/youtube";
 import {
   closeQueue,
+  getQueue,
   openQueue,
   pauseQueue,
   resumeQueue,
@@ -103,6 +104,13 @@ twitch.on("message", async (channel, tags, message, self) => {
         // brodacaster
         channel.replace("#", "") === tags.username)
     ) {
+      const queue = await getQueue();
+
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Suggestion list is closed 🛑`);
+        return;
+      }
+
       await pauseQueue().catch((err) => {
         console.error(err);
         twitch.say(channel, "Error pausing Suggestion List DinkDank @opti_21");
@@ -123,6 +131,13 @@ twitch.on("message", async (channel, tags, message, self) => {
         // brodacaster
         channel.replace("#", "") === tags.username)
     ) {
+      const queue = await getQueue();
+
+      if (!queue.is_open) {
+        twitch.say(channel, `@${tags.username} Suggestion list is closed 🛑`);
+        return;
+      }
+
       await resumeQueue().catch((err) => {
         console.error(err);
         twitch.say(channel, "Error resuming Suggestion List DinkDank @opti_21");

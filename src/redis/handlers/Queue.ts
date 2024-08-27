@@ -88,6 +88,7 @@ async function closeQueue() {
   const queue = await repository.fetch(QUEUE_ID);
 
   queue.is_open = false;
+  queue.is_paused = false;
 
   repository.save(queue);
 }
