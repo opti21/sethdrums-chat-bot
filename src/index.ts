@@ -1,6 +1,11 @@
 import tmi from "tmi.js";
 import "js-video-url-parser/lib/provider/youtube";
-import { closeQueue, openQueue } from "./redis/handlers/Queue";
+import {
+  closeQueue,
+  openQueue,
+  pauseQueue,
+  resumeQueue,
+} from "./redis/handlers/Queue";
 import express from "express";
 import Pusher from "pusher";
 import handleSongRequest from "./commands/songRequest";
@@ -61,14 +66,14 @@ twitch.on("message", async (channel, tags, message, self) => {
     ) {
       await openQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error opening queue");
+        twitch.say(channel, "Error opening Sugestion List DinkDank @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
         {}
       );
-      twitch.say(channel, `@${tags.username} Queue is now open`);
+      twitch.say(channel, `@${tags.username} Suggestion List is now open ✅`);
       return;
     }
 
@@ -81,14 +86,56 @@ twitch.on("message", async (channel, tags, message, self) => {
     ) {
       await closeQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error opening queue");
+        twitch.say(channel, "Error opening Suggestion list DinkDank @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
         {}
       );
-      twitch.say(channel, `@${tags.username} Queue is now closed`);
+      twitch.say(channel, `@${tags.username} Suggestion list is now closed 🛑`);
+      return;
+    }
+    if (
+      command === "pause" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") === tags.username)
+    ) {
+      await pauseQueue().catch((err) => {
+        console.error(err);
+        twitch.say(channel, "Error pausing Suggestion List DinkDank @opti_21");
+      });
+      pusher.trigger(
+        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
+        "update-queue",
+        {}
+      );
+      twitch.say(channel, `@${tags.username} Suggestion list is now paused ⏸️`);
+      return;
+    }
+
+    if (
+      command === "resume" &&
+      (tags.mod ||
+        tags.username === "opti_21" ||
+        // brodacaster
+        channel.replace("#", "") === tags.username)
+    ) {
+      await resumeQueue().catch((err) => {
+        console.error(err);
+        twitch.say(channel, "Error resuming Suggestion List DinkDank @opti_21");
+      });
+      pusher.trigger(
+        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
+        "update-queue",
+        {}
+      );
+      twitch.say(
+        channel,
+        `@${tags.username} Suggestion list has been resumed! Get your suggestions in! `
+      );
       return;
     }
 
