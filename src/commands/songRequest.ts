@@ -33,7 +33,10 @@ const handleSongRequest = async (
   const parsed = urlParser.parse(args[0]);
 
   if (!parsed) {
-    twitch.say(channel, `@${tags.username} please request with a youtube url`);
+    twitch.say(
+      channel,
+      `@${tags.username} KEKWait please try again with a youtube url`
+    );
     return;
   }
 
@@ -59,7 +62,7 @@ const handleSongRequest = async (
   if (userAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} KEKWait looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your request has been played or removed with !remove you can request another`
+      `@${tags.username} KEKWait looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your suggestion has been played or removed with !remove you can suggest another`
     );
     return;
   }
@@ -67,7 +70,7 @@ const handleSongRequest = async (
   if (videoAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} this song has already been requested, please try another song peepoShy`
+      `@${tags.username} this song has already been suggested, please try another song peepoShy`
     );
     return;
   }
@@ -103,7 +106,7 @@ const handleSongRequest = async (
 
       twitch.say(
         channel,
-        `@${tags.username} your request has been added POGGIES`
+        `@${tags.username} your suggestion has been added POGGIES`
       );
     }
     return;
@@ -113,7 +116,7 @@ const handleSongRequest = async (
   if (videoInDB.banned) {
     twitch.say(
       channel,
-      `@${tags.username} your request does not follow our rules. Please check our !rules before submitting. Thank you sthHeart`
+      `@${tags.username} your suggestion does not follow our rules. Please check our !rules before submitting. Thank you sthHeart`
     );
     return;
   }
@@ -138,7 +141,7 @@ const handleSongRequest = async (
 
   twitch.say(
     channel,
-    `@${tags.username} your song has been added to the suggestion list POGGIES`
+    `@${tags.username} your suggestion has been added! POGGIES`
   );
 
   return;
