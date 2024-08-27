@@ -13,6 +13,7 @@ const handleRemove = async (
     twitch.say(channel, `@${tags.username} The queue is currently closed`);
     return;
   }
+  console.log("Removing request for user: " + tags["user-id"]);
   const userHasRequest = await prisma.request.findFirst({
     where: {
       requested_by_id: tags["user-id"],
@@ -27,6 +28,8 @@ const handleRemove = async (
     );
     return;
   }
+
+  console.log("Removing request: " + userHasRequest.id);
 
   await prisma.request.delete({
     where: {
