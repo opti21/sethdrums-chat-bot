@@ -85,3 +85,4 @@ All notable changes to this project will be documented in this file. See [standa
 * update FE on queue open/close ([fdba3ca](https://github.com/opti21/pepega-chat/commit/fdba3caa928b23f53e1f1271e0a802a0b72ac7db))
 * update prisma to fix referential issue ([a8ff2f4](https://github.com/opti21/pepega-chat/commit/a8ff2f4c65c4c7366ae0d797f4444d2ce386c5ae))
 * Updated responses ([8cbf239](https://github.com/opti21/pepega-chat/commit/8cbf2397e387d2e23b1935362709b4279e91c8ae))
+* 
