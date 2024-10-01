@@ -1,19 +1,19 @@
-import { TwitchCreds } from "@prisma/client";
+import type { TwitchCreds } from "@prisma/client";
 import axios from "axios";
-import { ChatUserstate, Client } from "tmi.js";
+import { type ChatUserstate, Client } from "tmi.js";
 import { prisma } from "../utils/prisma";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc"
-import timezone from "dayjs/plugin/timezone"
-import isBetween from "dayjs/plugin/isBetween"
-import relativeTime from "dayjs/plugin/relativeTime"
-import advancedFormat from "dayjs/plugin/advancedFormat"
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import isBetween from "dayjs/plugin/isBetween";
+import relativeTime from "dayjs/plugin/relativeTime";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
-dayjs.extend(isBetween)
-dayjs.extend(relativeTime)
-dayjs.extend(advancedFormat)
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(isBetween);
+dayjs.extend(relativeTime);
+dayjs.extend(advancedFormat);
 
 const handleWhenNextStream = async (
   args: string[],
@@ -22,7 +22,7 @@ const handleWhenNextStream = async (
   tags: ChatUserstate
 ) => {
   try {
-    let twitchCreds
+    let twitchCreds;
 
     twitchCreds = await prisma.twitchCreds.findFirst();
 
@@ -30,42 +30,55 @@ const handleWhenNextStream = async (
       console.log("no creds");
       twitchCreds = await getNewToken();
     }
-    
+
     if (twitchCreds?.expires) {
-        if (twitchCreds?.expires < Math.floor(Date.now() / 1000)) {
-            console.log("twitch creds expired")
-            twitchCreds = await getNewToken()
-        }
+      if (twitchCreds?.expires < Math.floor(Date.now() / 1000)) {
+        console.log("twitch creds expired");
+        twitchCreds = await getNewToken();
+      }
     }
 
-    const schedule:any = await getSchedule(twitchCreds);
+    const schedule: any = await getSchedule(twitchCreds);
 
-    const removedCanceled = schedule.data.segments.filter((segemnt: any) => segemnt.canceled_until === null)
-    console.log(removedCanceled)
+    const removedCanceled = schedule.data.segments.filter(
+      (segemnt: any) => segemnt.canceled_until === null
+    );
+    console.log(removedCanceled);
 
-    const startTime = dayjs(removedCanceled[0].start_time).tz("America/Chicago")
+    const startTime = dayjs(removedCanceled[0].start_time).tz(
+      "America/Chicago"
+    );
     // const endTime = dayjs(schedule.data.segments[0].start_time).tz("America/Chicago")
 
     // const scheduledLive = dayjs().isBetween(startTime, endTime)
 
-    const startDateFormated = startTime.format("ddd[,] MMM Do [at] hA z")
-    const fromNow = dayjs(startTime).diff(dayjs(), "h")
+    const startDateFormated = startTime.format("ddd[,] MMM Do [at] hA z");
+    const fromNow = dayjs(startTime).diff(dayjs(), "h");
 
-    console.log(fromNow)
+    console.log(fromNow);
 
     if (dayjs().isAfter(startTime)) {
-        // If the first item in schdule is the currently live stream pull next stream date
-        if (removedCanceled.length > 1) {
-          const secondStartTime = dayjs(removedCanceled[1].start_time).tz("America/Chicago")
-          const secondStartDateFormated = secondStartTime.format("ddd[,] MMM Do [at] hA z")
-          return twitch.say(channel, `Seth's next stream is scheduled for ${secondStartDateFormated}`)
-        }
+      // If the first item in schdule is the currently live stream pull next stream date
+      if (removedCanceled.length > 1) {
+        const secondStartTime = dayjs(removedCanceled[1].start_time).tz(
+          "America/Chicago"
+        );
+        const secondStartDateFormated = secondStartTime.format(
+          "ddd[,] MMM Do [at] hA z"
+        );
+        return twitch.say(
+          channel,
+          `Seth's next stream is scheduled for ${secondStartDateFormated}`
+        );
+      }
 
-        return twitch.say(channel, `There's currently no streams scheduled`)
+      return twitch.say(channel, `There's currently no streams scheduled`);
     }
 
-    return twitch.say(channel, `Seth's next stream is scheduled for ${startDateFormated}`)
-
+    return twitch.say(
+      channel,
+      `Seth's next stream is scheduled for ${startDateFormated}`
+    );
   } catch (err) {
     console.error(err);
     return;
@@ -75,13 +88,12 @@ const handleWhenNextStream = async (
 export default handleWhenNextStream;
 
 const getSchedule = async (twitchCreds: TwitchCreds | null) => {
-    console.log("Getting schedule");
+  console.log("Getting schedule");
   return new Promise((resolve, reject) => {
     if (!twitchCreds) {
       console.log("NO TWITCH CREDS FOR REQUEST");
       return reject(Error("No twitch creds"));
     } else {
-
       axios
         .get(`https://api.twitch.tv/helix/schedule?broadcaster_id=147155277`, {
           headers: {

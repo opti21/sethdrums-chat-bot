@@ -1,5 +1,5 @@
 import { getQueue } from "../redis/handlers/Queue";
-import { ChatUserstate, Client } from "tmi.js";
+import { type ChatUserstate, Client } from "tmi.js";
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import { prisma } from "../utils/prisma";

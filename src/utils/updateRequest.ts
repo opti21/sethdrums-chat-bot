@@ -1,4 +1,4 @@
-import { pusher } from "../index";
+import { pusher } from "../chatbot";
 import { prisma } from "./prisma";
 
 export async function updateRequest(

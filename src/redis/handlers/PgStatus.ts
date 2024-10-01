@@ -1,4 +1,4 @@
-import { Entity, EntityCreationData, Schema } from "redis-om";
+import { Entity, type EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
 
 interface PgStatus {

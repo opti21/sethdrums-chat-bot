@@ -8,7 +8,7 @@ import { ChatUserstate, Client } from "tmi.js";
 import "js-video-url-parser/lib/provider/youtube";
 import { prisma } from "../utils/prisma";
 import { reorder } from "../utils/utils";
-import { pusher } from "../index";
+import { pusher } from "../chatbot";
 
 let raffleOpen = false;
 let raffleSecondsLeft: number;
@@ -21,7 +21,6 @@ const handleRaffle = async (
   channel: string,
   tags: ChatUserstate
 ) => {
-
   if (args[0] === "cancel") {
     raffleOpen = false;
     clearInterval(raffleInterval);

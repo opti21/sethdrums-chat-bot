@@ -1,5 +1,5 @@
 import { getQueue } from "../redis/handlers/Queue";
-import { ChatUserstate, Client } from "tmi.js";
+import { type ChatUserstate, Client } from "tmi.js";
 import { prisma } from "../utils/prisma";
 
 const handleCurrentSong = async (
