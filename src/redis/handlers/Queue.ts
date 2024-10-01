@@ -1,6 +1,6 @@
-import { pusher } from "../../chatbot";
 import { Entity, type EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
+import { pusher } from "index";
 
 const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
 
