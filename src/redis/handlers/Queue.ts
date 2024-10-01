@@ -1,6 +1,6 @@
-import { pusher } from "../../index";
-import { Entity, EntityCreationData, Schema } from "redis-om";
+import { Entity, type EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
+import { pusher } from "index";
 
 const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
 
@@ -12,6 +12,7 @@ interface Queue {
   now_playing?: string;
   is_open: boolean;
   currently_processing: string[];
+  is_subOnly: boolean;
 }
 
 class Queue extends Entity {}
@@ -26,6 +27,7 @@ const queueSchema = new Schema(
     now_playing: { type: "string" },
     is_open: { type: "boolean" },
     currently_processing: { type: "string[]" },
+    is_subOnly: { type: "boolean" },
   },
   {
     dataStructure: "JSON",
@@ -327,6 +329,18 @@ async function removePrioFromProcessing(requestID: string) {
   await repository.save(queue);
 }
 
+async function setSubOnly(subOnly: boolean) {
+  await connect();
+
+  const repository = client.fetchRepository(queueSchema);
+
+  const queue = await repository.fetch(QUEUE_ID);
+
+  queue.is_subOnly = subOnly;
+
+  await repository.save(queue);
+}
+
 export {
   Queue,
   getQueue,
@@ -344,4 +358,5 @@ export {
   updateNowPlaying,
   setPrioAsProcessing,
   removePrioFromProcessing,
+  setSubOnly,
 };

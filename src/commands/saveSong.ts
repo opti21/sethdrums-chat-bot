@@ -1,4 +1,4 @@
-import { ChatUserstate, Client } from "tmi.js";
+import { type ChatUserstate, Client } from "tmi.js";
 import { getQueue } from "../redis/handlers/Queue";
 import { Video } from "../redis/handlers/Video";
 import { prisma } from "../utils/prisma";

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Entity, Schema } from "redis-om";
-import { YTApiResponse } from "../../utils/types";
+import { type YTApiResponse } from "../../utils/types";
 import { client, connect } from "../redis";
 import { createPgStatus, Status } from "./PgStatus";
 

@@ -1,7 +1,7 @@
 import urlParser from "js-video-url-parser/lib/base";
 import "js-video-url-parser/lib/provider/youtube";
 import { addToQueue, getQueue } from "../redis/handlers/Queue";
-import { ChatUserstate, Client } from "tmi.js";
+import { type ChatUserstate, Client } from "tmi.js";
 import { createRequest } from "../utils/createRequest";
 import { createVideo } from "../utils/createVideo";
 import { prisma } from "../utils/prisma";
@@ -27,6 +27,17 @@ const handleSongRequest = async (
       `@${tags.username} KEKWait The suggestion list is currently paused, please wait for it to be resumed`
     );
     return;
+  }
+
+  // allow mods if sub only
+  if (!tags.subscriber && queue.is_subOnly) {
+    if (!tags.mod || channel.replace("#", "") !== tags.username) {
+      twitch.say(
+        channel,
+        `@${tags.username} sorry but the suggestion list is currently subs only`
+      );
+      return;
+    }
   }
 
   // Check if valid youtube link then parse
