@@ -4,7 +4,8 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "dev": "doppler run -- bun --watch src/index.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.5.6",
