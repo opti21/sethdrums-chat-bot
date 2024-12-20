@@ -183,7 +183,7 @@ twitch.on("message", async (channel, tags, message, self) => {
 
     if (command.startsWith("subonly")) {
       if (tags.mod || channel.replace("#", "") === tags.username) {
-        const arg = command.split(" ")[1]?.toLowerCase();
+        const arg = args[0]?.toLowerCase();
         if (arg !== "on" && arg !== "off") {
           twitch.say(channel, `@${tags.username} Please use !subonly on/off`);
           return;
