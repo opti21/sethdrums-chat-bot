@@ -139,7 +139,7 @@ const handleSongRequest = async (
     tags["user-id"]!
   );
 
-  if (!createRequest) {
+  if (!createdRequest) {
     twitch.say(channel, `Error creating request DinkDank @opti_21`);
     return;
   }

@@ -174,7 +174,7 @@ async function addToQueue(
       return;
     }
 
-    lockQueue();
+    await lockQueue();
 
     await connect();
 
@@ -186,7 +186,7 @@ async function addToQueue(
 
     await repository.save(queue);
 
-    unLockQueue();
+    await unLockQueue();
 
     pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "queue-add", queue);
 
@@ -201,7 +201,7 @@ async function removeFromOrder(
   requestID: string | undefined
 ): Promise<boolean> {
   try {
-    lockQueue();
+    await lockQueue();
 
     await connect();
 
@@ -219,7 +219,7 @@ async function removeFromOrder(
 
     await repository.save(queue);
 
-    unLockQueue();
+    await unLockQueue();
 
     return true;
   } catch (e) {
@@ -233,7 +233,7 @@ async function updateOrder(updatedOrderData: any): Promise<boolean> {
       return request.id;
     });
 
-    lockQueue();
+    await lockQueue();
 
     await connect();
 
@@ -245,7 +245,7 @@ async function updateOrder(updatedOrderData: any): Promise<boolean> {
 
     await repository.save(queue);
 
-    unLockQueue();
+    await unLockQueue();
 
     return true;
   } catch (e) {
@@ -255,7 +255,7 @@ async function updateOrder(updatedOrderData: any): Promise<boolean> {
 
 async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
   try {
-    lockQueue();
+    await lockQueue();
 
     await connect();
 
@@ -267,7 +267,7 @@ async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
 
     await repository.save(queue);
 
-    unLockQueue();
+    await unLockQueue();
 
     return true;
   } catch (e) {
@@ -278,7 +278,7 @@ async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
 
 async function updateNowPlaying(requestID: string): Promise<boolean> {
   try {
-    lockQueue();
+    await lockQueue();
 
     await connect();
 
@@ -290,7 +290,7 @@ async function updateNowPlaying(requestID: string): Promise<boolean> {
 
     await repository.save(queue);
 
-    unLockQueue();
+    await unLockQueue();
 
     return true;
   } catch (e) {
