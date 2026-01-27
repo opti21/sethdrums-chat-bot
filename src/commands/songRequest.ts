@@ -10,13 +10,13 @@ const handleSongRequest = async (
   args: string[],
   twitch: Client,
   channel: string,
-  tags: ChatUserstate
+  tags: ChatUserstate,
 ) => {
   const queue = await getQueue();
   if (!queue.is_open) {
     twitch.say(
       channel,
-      `@${tags.username} KEKWait The suggestion list is currently closed`
+      `@${tags.username} The suggestion list is currently closed`,
     );
     return;
   }
@@ -24,7 +24,7 @@ const handleSongRequest = async (
   if (queue.is_paused) {
     twitch.say(
       channel,
-      `@${tags.username} KEKWait The suggestion list is currently paused, please wait for it to be resumed`
+      `@${tags.username} The suggestion list is currently paused, please wait for it to be resumed`,
     );
     return;
   }
@@ -34,7 +34,7 @@ const handleSongRequest = async (
     if (!tags.mod || channel.replace("#", "") !== tags.username) {
       twitch.say(
         channel,
-        `@${tags.username} sorry but the suggestion list is currently subs only`
+        `@${tags.username} sorry but the suggestion list is currently subs only`,
       );
       return;
     }
@@ -46,7 +46,7 @@ const handleSongRequest = async (
   if (!parsed) {
     twitch.say(
       channel,
-      `@${tags.username} KEKWait please try again with a youtube url`
+      `@${tags.username} please try again with a youtube url`,
     );
     return;
   }
@@ -73,7 +73,7 @@ const handleSongRequest = async (
   if (userAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} KEKWait looks like you already have a song in the queue, you can replace it by doing '!replace newurl', or once your suggestion has been played or removed with !remove you can suggest another`
+      `@${tags.username} looks like you already have a song in the suggestion list, you can replace it by doing '!replace newurl', or once your suggestion has been played or removed with !remove you can suggest another`,
     );
     return;
   }
@@ -81,7 +81,7 @@ const handleSongRequest = async (
   if (videoAlreadyRequested) {
     twitch.say(
       channel,
-      `@${tags.username} this song has already been suggested, please try another song peepoShy`
+      `@${tags.username} this song has already been suggested, please try another song :)`,
     );
     return;
   }
@@ -102,22 +102,19 @@ const handleSongRequest = async (
       const createdRequest = await createRequest(
         createdVideo.id,
         tags.username!,
-        tags["user-id"]!
+        tags["user-id"]!,
       );
 
       const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
       if (!addedToQueue) {
-        twitch.say(
-          channel,
-          `Error adding to Suggestion List DinkDank @opti_21`
-        );
+        twitch.say(channel, `Error adding to Suggestion List @opti_21`);
         return;
       }
 
       twitch.say(
         channel,
-        `@${tags.username} your suggestion has been added POGGIES`
+        `@${tags.username} your suggestion has been added sdrumsPog`,
       );
     }
     return;
@@ -127,7 +124,7 @@ const handleSongRequest = async (
   if (videoInDB.banned) {
     twitch.say(
       channel,
-      `@${tags.username} your suggestion does not follow our rules. Please check our !rules before submitting. Thank you sthHeart`
+      `@${tags.username} your suggestion does not follow our rules. Please check our !rules before submitting. Thank you sdrumsHeart`,
     );
     return;
   }
@@ -136,23 +133,23 @@ const handleSongRequest = async (
   const createdRequest = await createRequest(
     videoInDB.id,
     tags.username!,
-    tags["user-id"]!
+    tags["user-id"]!,
   );
 
   if (!createRequest) {
-    twitch.say(channel, `Error creating request DinkDank @opti_21`);
+    twitch.say(channel, `Error creating request @opti_21`);
     return;
   }
 
   const addedToQueue = await addToQueue(createdRequest?.id.toString());
 
   if (!addedToQueue) {
-    twitch.say(channel, `Error adding to Suggestion List DinkDank @opti_21`);
+    twitch.say(channel, `Error adding to Suggestion List @opti_21`);
   }
 
   twitch.say(
     channel,
-    `@${tags.username} your suggestion has been added! POGGIES`
+    `@${tags.username} your suggestion has been added! sdrumsPog`,
   );
 
   return;

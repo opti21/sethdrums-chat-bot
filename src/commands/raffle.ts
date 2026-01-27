@@ -19,7 +19,7 @@ const handleRaffle = async (
   args: string[],
   twitch: Client,
   channel: string,
-  tags: ChatUserstate
+  tags: ChatUserstate,
 ) => {
   if (args[0] === "cancel") {
     raffleOpen = false;
@@ -40,7 +40,7 @@ const handleRaffle = async (
   if (!duration) {
     twitch.say(
       channel,
-      `@${tags.username} please supply duration !songraffle <number>`
+      `@${tags.username} please supply duration !songraffle <number>`,
     );
     return;
   }
@@ -48,7 +48,7 @@ const handleRaffle = async (
   if (duration > 120) {
     twitch.say(
       channel,
-      `@${tags.username} please supply duration lower then or equal to 120 seconds`
+      `@${tags.username} please supply duration lower then or equal to 120 seconds`,
     );
     return;
   }
@@ -62,7 +62,7 @@ const handleRaffle = async (
 
   twitch.say(
     channel,
-    `PogChamp A raffle has begun for the next song! sthPog it will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sthHype`
+    `A raffle has begun for the next song! sdrumsPog It will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sdrumsHype`,
   );
 
   raffleInterval = setInterval(() => {
@@ -71,7 +71,7 @@ const handleRaffle = async (
     if (raffleOpen) {
       twitch.say(
         channel,
-        `The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the queue sthPog`
+        `The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sdrumsPog`,
       );
     }
   }, 10000);
@@ -80,7 +80,7 @@ const handleRaffle = async (
     raffleOpen = false;
     clearInterval(raffleInterval);
 
-    twitch.say(channel, "The raffle has closed! Picking winner...");
+    twitch.say(channel, "The raffle has closed! Picking winner... ");
 
     const nonPrioRequests = await prisma.request
       .findMany({
@@ -111,7 +111,7 @@ const handleRaffle = async (
 
     twitch.say(
       channel,
-      `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sthPeepo sthHype`
+      `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sdrumsHype`,
     );
 
     const currentQueue = await getQueue();
@@ -138,7 +138,7 @@ const handleRaffle = async (
       });
 
     const oldIndex = currentQueue.order.findIndex(
-      (currRequestID) => currRequestID === winningRequest.id.toString()
+      (currRequestID) => currRequestID === winningRequest.id.toString(),
     );
 
     const updatedOrder = reorder(currentQueue.order, oldIndex, 0);

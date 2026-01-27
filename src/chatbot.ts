@@ -50,12 +50,12 @@ twitch.on("message", async (channel, tags, message, self) => {
     ) {
       await openQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error opening Sugestion List DinkDank @opti_21");
+        twitch.say(channel, "Error opening Sugestion List @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
-        {}
+        {},
       );
       twitch.say(channel, `@${tags.username} Suggestion List is now open ✅`);
       return;
@@ -70,12 +70,12 @@ twitch.on("message", async (channel, tags, message, self) => {
     ) {
       await closeQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error opening Suggestion list DinkDank @opti_21");
+        twitch.say(channel, "Error closing Suggestion list @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
-        {}
+        {},
       );
       twitch.say(channel, `@${tags.username} Suggestion list is now closed 🛑`);
       return;
@@ -96,12 +96,12 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       await pauseQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error pausing Suggestion List DinkDank @opti_21");
+        twitch.say(channel, "Error pausing Suggestion List @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
-        {}
+        {},
       );
       twitch.say(channel, `@${tags.username} Suggestion list is now paused ⏸️`);
       return;
@@ -123,16 +123,16 @@ twitch.on("message", async (channel, tags, message, self) => {
 
       await resumeQueue().catch((err) => {
         console.error(err);
-        twitch.say(channel, "Error resuming Suggestion List DinkDank @opti_21");
+        twitch.say(channel, "Error resuming Suggestion List @opti_21");
       });
       pusher.trigger(
         process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
         "update-queue",
-        {}
+        {},
       );
       twitch.say(
         channel,
-        `@${tags.username} Suggestion list has been resumed! Get your suggestions in! `
+        `@${tags.username} Suggestion list has been resumed! Get your suggestions in! `,
       );
       return;
     }
@@ -166,7 +166,7 @@ twitch.on("message", async (channel, tags, message, self) => {
     ) {
       twitch.say(
         channel,
-        `MrDestructoid POLO! - v${process.env.npm_package_version}`
+        `MrDestructoid POLO! - v${process.env.npm_package_version}`,
       );
       return;
     }
@@ -194,7 +194,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           channel,
           `@${tags.username} Suggestion list is now ${
             subOnly ? "sub only" : "open to everyone"
-          }`
+          }`,
         );
       }
     }
