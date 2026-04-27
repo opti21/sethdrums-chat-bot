@@ -114,7 +114,7 @@ const handleSongRequest = async (
 
       twitch.say(
         channel,
-        `@${tags.username} your suggestion has been added sdrumsPog`,
+        `@${tags.username} your suggestion has been added PogChamp`,
       );
     }
     return;
@@ -124,7 +124,7 @@ const handleSongRequest = async (
   if (videoInDB.banned) {
     twitch.say(
       channel,
-      `@${tags.username} your suggestion does not follow our rules. Please check our !rules before submitting. Thank you sdrumsHeart`,
+      `@${tags.username} your suggestion does not follow our rules. Please check our !rules before submitting. Thank you <3`,
     );
     return;
   }
@@ -149,7 +149,7 @@ const handleSongRequest = async (
 
   twitch.say(
     channel,
-    `@${tags.username} your suggestion has been added! sdrumsPog`,
+    `@${tags.username} your suggestion has been added! PogChamp`,
   );
 
   return;

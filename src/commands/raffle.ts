@@ -62,7 +62,7 @@ const handleRaffle = async (
 
   twitch.say(
     channel,
-    `A raffle has begun for the next song! sdrumsPog It will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sdrumsHype`,
+    `A raffle has begun for the next song! PogChamp It will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list Kreygasm`,
   );
 
   raffleInterval = setInterval(() => {
@@ -71,7 +71,7 @@ const handleRaffle = async (
     if (raffleOpen) {
       twitch.say(
         channel,
-        `The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list sdrumsPog`,
+        `The raffle for the next song will end in ${raffleSecondsLeft} seconds. You're automatically entered by having a song in the suggestion list PogChamp`,
       );
     }
   }, 10000);
@@ -111,7 +111,7 @@ const handleRaffle = async (
 
     twitch.say(
       channel,
-      `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! sdrumsHype`,
+      `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! Kreygasm`,
     );
 
     const currentQueue = await getQueue();
