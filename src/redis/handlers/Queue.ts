@@ -1,6 +1,12 @@
 import { Entity, type EntityCreationData, Schema } from "redis-om";
 import { client, connect } from "../redis";
 import { pusher } from "index";
+import {
+  move,
+  readQueue,
+  setQueueFields,
+  updateQueue,
+} from "../queueState";
 
 const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
 
@@ -65,105 +71,51 @@ async function createQueue(data: EntityCreationData) {
 }
 
 async function openQueue() {
-  await connect();
+  await setQueueFields({ is_open: true });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "open-queue", {});
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_open = true;
-
-  repository.save(queue);
-
-  return queue;
 }
 
 async function closeQueue() {
-  await connect();
+  await setQueueFields({ is_open: false, is_paused: false });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "close-queue", {});
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_open = false;
-  queue.is_paused = false;
-
-  repository.save(queue);
 }
 
 async function lockQueue() {
-  await connect();
+  await setQueueFields({ is_updating: true, being_updated_by: "PEPEGA BOT" });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "lock-queue", {
     beingUpdatedBy: "PEPEGA BOT",
   });
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_updating = true;
-  queue.being_updated_by = "PEPEGA BOT";
-
-  repository.save(queue);
-
-  return queue;
 }
 
 async function unLockQueue() {
-  await connect();
+  await setQueueFields({ is_updating: false, being_updated_by: "" });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "unlock-queue", {
     beingUpdatedBy: "",
   });
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.being_updated_by = "";
-  queue.is_updating = false;
-
-  repository.save(queue);
-
-  return queue;
 }
 
 async function pauseQueue() {
-  await connect();
+  await setQueueFields({ is_paused: true });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "pause-queue", {});
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_paused = true;
-
-  repository.save(queue);
-
-  return queue;
 }
 
 async function resumeQueue() {
-  await connect();
+  await setQueueFields({ is_paused: false });
 
   pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "resume-queue", {});
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_paused = false;
-
-  repository.save(queue);
-
-  return queue;
 }
+
+/*
+ * Order and currently_processing changes below go through updateQueue, a
+ * WATCH/MULTI transaction that retries on the fresh state if a mod (or
+ * another bot command) changed the queue mid-write. They no longer lock the
+ * panel: nothing can be overwritten, so there is nothing to lock out.
+ */
 
 async function addToQueue(
   requestID: string | undefined
@@ -174,21 +126,16 @@ async function addToQueue(
       return;
     }
 
-    lockQueue();
+    const id = String(requestID);
+    const queue = await updateQueue((current) =>
+      current.order.includes(id) ? null : { order: [...current.order, id] }
+    );
 
-    await connect();
-
-    const repository = client.fetchRepository(queueSchema);
-
-    const queue = await repository.fetch(QUEUE_ID);
-
-    queue?.order?.push(requestID);
-
-    await repository.save(queue);
-
-    unLockQueue();
-
-    pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "queue-add", queue);
+    pusher.trigger(
+      process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
+      "queue-add",
+      queue ?? (await readQueue())
+    );
 
     return true;
   } catch (e) {
@@ -201,73 +148,46 @@ async function removeFromOrder(
   requestID: string | undefined
 ): Promise<boolean> {
   try {
-    lockQueue();
-
-    await connect();
-
-    const repository = client.fetchRepository(queueSchema);
-
-    const queue = await repository.fetch(QUEUE_ID);
-
-    if (queue.order) {
-      for (let i = 0; i < queue.order.length; i++) {
-        if (queue.order[i] === requestID) {
-          queue.order.splice(i, 1);
-        }
-      }
-    }
-
-    await repository.save(queue);
-
-    unLockQueue();
+    const id = String(requestID);
+    await updateQueue((current) =>
+      current.order.includes(id)
+        ? { order: current.order.filter((item) => item !== id) }
+        : null
+    );
 
     return true;
   } catch (e) {
+    console.error(e);
     return Promise.reject("Error removing from order");
   }
 }
 
+/**
+ * Merge a submitted order with the live one: ids that left the queue are
+ * dropped, and ids added since the caller read the queue keep their place
+ * instead of vanishing. Same rule as the panel's drag save.
+ */
+function mergeOrder(current: string[], submitted: string[]) {
+  const live = new Set(current);
+  const order = [...new Set(submitted.map(String))].filter((id) => live.has(id));
+  const seen = new Set(order);
+  current.forEach((id, index) => {
+    if (!seen.has(id)) order.splice(Math.min(index, order.length), 0, id);
+  });
+  return order;
+}
+
 async function updateOrder(updatedOrderData: any): Promise<boolean> {
-  try {
-    const updatedOrder = updatedOrderData.map((request: any) => {
-      return request.id;
-    });
-
-    lockQueue();
-
-    await connect();
-
-    const repository = client.fetchRepository(queueSchema);
-
-    const queue = await repository.fetch(QUEUE_ID);
-
-    queue.order = updatedOrder;
-
-    await repository.save(queue);
-
-    unLockQueue();
-
-    return true;
-  } catch (e) {
-    return Promise.reject("Error updating queue");
-  }
+  return updateOrderIdStrings(
+    updatedOrderData.map((request: any) => String(request.id))
+  ).catch(() => Promise.reject("Error updating queue"));
 }
 
 async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
   try {
-    lockQueue();
-
-    await connect();
-
-    const repository = client.fetchRepository(queueSchema);
-
-    const queue = await repository.fetch(QUEUE_ID);
-
-    queue.order = updatedOrder;
-
-    await repository.save(queue);
-
-    unLockQueue();
+    await updateQueue((current) => ({
+      order: mergeOrder(current.order, updatedOrder),
+    }));
 
     return true;
   } catch (e) {
@@ -276,21 +196,21 @@ async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
   }
 }
 
+/** Move a request to `index` in the live order. False if it left the queue. */
+async function moveInOrder(requestID: string, index: number): Promise<boolean> {
+  const id = String(requestID);
+  let found = false;
+  await updateQueue((current) => {
+    const from = current.order.indexOf(id);
+    found = from !== -1;
+    return found ? { order: move(current.order, from, index) } : null;
+  });
+  return found;
+}
+
 async function updateNowPlaying(requestID: string): Promise<boolean> {
   try {
-    lockQueue();
-
-    await connect();
-
-    const repository = client.fetchRepository(queueSchema);
-
-    const queue = await repository.fetch(QUEUE_ID);
-
-    queue.now_playing = requestID;
-
-    await repository.save(queue);
-
-    unLockQueue();
+    await setQueueFields({ now_playing: String(requestID) });
 
     return true;
   } catch (e) {
@@ -299,46 +219,32 @@ async function updateNowPlaying(requestID: string): Promise<boolean> {
   }
 }
 
-async function setPrioAsProcessing(requestID: string) {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.currently_processing.push(requestID);
-
-  await repository.save(queue);
+/** Mark a request as being changed. False if someone else already has it. */
+async function setPrioAsProcessing(requestID: string): Promise<boolean> {
+  const id = String(requestID);
+  const written = await updateQueue((current) =>
+    current.currently_processing.includes(id)
+      ? null
+      : { currently_processing: [...current.currently_processing, id] }
+  );
+  return written !== null;
 }
 
 async function removePrioFromProcessing(requestID: string) {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  if (queue.order) {
-    for (let i = 0; i < queue.currently_processing.length; i++) {
-      if (queue.currently_processing[i] === requestID) {
-        queue.currently_processing.splice(i, 1);
-      }
-    }
-  }
-
-  await repository.save(queue);
+  const id = String(requestID);
+  await updateQueue((current) =>
+    current.currently_processing.includes(id)
+      ? {
+          currently_processing: current.currently_processing.filter(
+            (item) => item !== id
+          ),
+        }
+      : null
+  );
 }
 
 async function setSubOnly(subOnly: boolean) {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  queue.is_subOnly = subOnly;
-
-  await repository.save(queue);
+  await setQueueFields({ is_subOnly: subOnly });
 }
 
 export {
@@ -355,6 +261,8 @@ export {
   removeFromOrder,
   updateOrder,
   updateOrderIdStrings,
+  moveInOrder,
+  mergeOrder,
   updateNowPlaying,
   setPrioAsProcessing,
   removePrioFromProcessing,

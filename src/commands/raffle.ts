@@ -1,13 +1,11 @@
 import {
-  getQueue,
+  moveInOrder,
   removePrioFromProcessing,
   setPrioAsProcessing,
-  updateOrderIdStrings,
 } from "../redis/handlers/Queue";
 import { type ChatUserstate, Client } from "tmi.js";
 import "js-video-url-parser/lib/provider/youtube";
 import { prisma } from "../utils/prisma";
-import { reorder } from "../utils/utils";
 import { pusher } from "index";
 
 let raffleOpen = false;
@@ -114,37 +112,48 @@ const handleRaffle = async (
       `The raffle winner is ${winningRequest.requested_by}! Their song will be up next! Kreygasm`,
     );
 
-    const currentQueue = await getQueue();
+    const winnerID = winningRequest.id.toString();
 
-    if (!currentQueue.order) {
-      console.error("No queue order");
-      return;
+    const claimed = await setPrioAsProcessing(winnerID).catch((err) => {
+      console.error(err);
+      return false;
+    });
+
+    try {
+      if (!claimed) {
+        // A mod is changing this request's prio in the panel right now, so
+        // leave the prio flags to them and only move it to the top.
+        console.error("Raffle winner is already being processed", winnerID);
+      } else {
+        await prisma.request
+          .update({
+            where: {
+              id: winningRequest.id,
+            },
+            data: {
+              priority: true,
+              raffle_prio: true,
+            },
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+
+      // Moves the winner to the top of the live order, so songs added or
+      // moved while the raffle ran aren't lost.
+      const moved = await moveInOrder(winnerID, 0);
+
+      if (!moved) {
+        console.error("Raffle winner is no longer in the queue", winnerID);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (claimed) {
+        await removePrioFromProcessing(winnerID).catch(console.error);
+      }
     }
-
-    await setPrioAsProcessing(winningRequest.id.toString());
-
-    await prisma.request
-      .update({
-        where: {
-          id: winningRequest.id,
-        },
-        data: {
-          priority: true,
-          raffle_prio: true,
-        },
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-
-    const oldIndex = currentQueue.order.findIndex(
-      (currRequestID) => currRequestID === winningRequest.id.toString(),
-    );
-
-    const updatedOrder = reorder(currentQueue.order, oldIndex, 0);
-
-    await updateOrderIdStrings(updatedOrder);
-    await removePrioFromProcessing(winningRequest.id.toString());
   }, duration * 1000);
   return;
 };
