@@ -1,4 +1,4 @@
-import { pusher } from "index";
+import { trigger } from "realtime";
 import { prisma } from "./prisma";
 
 export async function updateRequest(
@@ -15,7 +15,7 @@ export async function updateRequest(
       },
     });
 
-    pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "update-queue", {});
+    trigger("update-queue", {});
 
     return true;
   } catch (e) {

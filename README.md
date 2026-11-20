@@ -17,3 +17,9 @@ pnpm dev
 `pnpm install && pnpm prisma generate` and starts with `bun start`.
 
 This project was created using `bun init` in bun v1.1.24. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+
+## Queue backend
+
+`QUEUE_BACKEND` (`redis` or `do`) and `REALTIME_BACKEND` (`pusher` or `do`)
+must match the frontend. With `do`, also set `QUEUE_WORKER_URL` and
+`QUEUE_WORKER_SECRET`. See the frontend repo's `queue-worker/README.md`.
