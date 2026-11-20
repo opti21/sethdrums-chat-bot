@@ -58,7 +58,16 @@ async function resumeQueue() {
  * WATCH/MULTI transaction that retries on the fresh state if a mod (or
  * another bot command) changed the queue mid-write. They no longer lock the
  * panel: nothing can be overwritten, so there is nothing to lock out.
+ *
+ * The panel refreshes on Pusher events, so every write below that changed
+ * something tells it with "update-queue" (or "queue-add" for new songs).
  */
+
+function notifyQueueChanged() {
+  pusher
+    .trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "update-queue", {})
+    .catch((err) => console.error("Error sending update-queue", err));
+}
 
 async function addToQueue(
   requestID: string | undefined
@@ -92,11 +101,12 @@ async function removeFromOrder(
 ): Promise<boolean> {
   try {
     const id = String(requestID);
-    await updateQueue((current) =>
+    const written = await updateQueue((current) =>
       current.order.includes(id)
         ? { order: current.order.filter((item) => item !== id) }
         : null
     );
+    if (written) notifyQueueChanged();
 
     return true;
   } catch (e) {
@@ -131,6 +141,7 @@ async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
     await updateQueue((current) => ({
       order: mergeOrder(current.order, updatedOrder),
     }));
+    notifyQueueChanged();
 
     return true;
   } catch (e) {
@@ -148,12 +159,14 @@ async function moveInOrder(requestID: string, index: number): Promise<boolean> {
     found = from !== -1;
     return found ? { order: move(current.order, from, index) } : null;
   });
+  if (found) notifyQueueChanged();
   return found;
 }
 
 async function updateNowPlaying(requestID: string): Promise<boolean> {
   try {
     await setQueueFields({ now_playing: String(requestID) });
+    notifyQueueChanged();
 
     return true;
   } catch (e) {
@@ -170,12 +183,13 @@ async function setPrioAsProcessing(requestID: string): Promise<boolean> {
       ? null
       : { currently_processing: [...current.currently_processing, id] }
   );
+  if (written) notifyQueueChanged();
   return written !== null;
 }
 
 async function removePrioFromProcessing(requestID: string) {
   const id = String(requestID);
-  await updateQueue((current) =>
+  const written = await updateQueue((current) =>
     current.currently_processing.includes(id)
       ? {
           currently_processing: current.currently_processing.filter(
@@ -184,10 +198,12 @@ async function removePrioFromProcessing(requestID: string) {
         }
       : null
   );
+  if (written) notifyQueueChanged();
 }
 
 async function setSubOnly(subOnly: boolean) {
   await setQueueFields({ is_subOnly: subOnly });
+  notifyQueueChanged();
 }
 
 export {

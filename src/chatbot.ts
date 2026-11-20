@@ -187,7 +187,7 @@ twitch.on("message", async (channel, tags, message, self) => {
           return;
         }
         const subOnly = arg === "on";
-        setSubOnly(subOnly);
+        setSubOnly(subOnly).catch(console.error);
         twitch.say(
           channel,
           `@${tags.username} Suggestion list is now ${
