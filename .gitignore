@@ -17,3 +17,5 @@ coverage
 /prisma/dev.db-journal
 
 /prisma/old-migrations/
+# prisma generate output
+/src/generated/

@@ -1,43 +1,29 @@
 {
   "name": "sethdrums-chat-bot",
   "version": "2.0.2",
-  "module": "index.ts",
   "type": "module",
   "scripts": {
     "start": "bun run src/index.ts",
-    "dev": "doppler run -- bun --watch src/index.ts"
+    "dev": "doppler run -- bun --watch src/index.ts",
+    "generate": "prisma generate",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@libsql/client": "^0.5.6",
-    "@prisma/adapter-libsql": "^5.11.0",
-    "@prisma/client": "^5.11.0",
-    "@types/express": "^4.17.13",
-    "axios": "^0.30.0",
-    "dayjs": "^1.11.5",
-    "dotenv": "^15.0.0",
-    "express": "^4.17.3",
-    "hono": "^4.6.3",
-    "ioredis": "^4.28.3",
+    "@prisma/adapter-libsql": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "dayjs": "^1.11.23",
+    "hono": "^4.13.19",
     "js-video-url-parser": "^0.5.1",
-    "pusher": "^5.0.1",
-    "pusher-js": "^7.0.6",
-    "redis": "^4.7.1",
-    "redis-om": "^0.2.0",
+    "pusher": "^5.3.4",
+    "redis": "^5.12.4",
     "tmi.js": "^1.8.5"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.10",
-    "@types/ioredis": "^4.28.7",
-    "@types/node": "^17.0.17",
-    "@types/tmi.js": "^1.8.1",
-    "@types/ws": "^8.2.2",
-    "@typescript-eslint/eslint-plugin": "^7.3.1",
-    "@typescript-eslint/parser": "^7.3.1",
-    "eslint": "^8.57.0",
-    "nodemon": "^2.0.15",
-    "prisma": "^5.11.0",
-    "ts-node": "^10.4.0",
-    "typescript": "^5.4.3"
+    "@types/bun": "^1.4.4",
+    "@types/node": "^22.20.5",
+    "@types/tmi.js": "^1.8.6",
+    "prisma": "7.10.1",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

@@ -1,73 +1,16 @@
-import { Entity, type EntityCreationData, Schema } from "redis-om";
-import { client, connect } from "../redis";
 import { pusher } from "index";
 import {
   move,
   readQueue,
   setQueueFields,
   updateQueue,
+  type QueueState,
 } from "../queueState";
 
-const QUEUE_ID = process.env.QUEUE_ID ? process.env.QUEUE_ID : "";
+type Queue = QueueState;
 
-interface Queue {
-  order?: string[];
-  is_updating?: boolean;
-  is_paused?: boolean;
-  being_updated_by?: string;
-  now_playing?: string;
-  is_open: boolean;
-  currently_processing: string[];
-  is_subOnly: boolean;
-}
-
-class Queue extends Entity {}
-
-const queueSchema = new Schema(
-  Queue,
-  {
-    order: { type: "string[]" },
-    is_updating: { type: "boolean" },
-    is_paused: { type: "boolean" },
-    being_updated_by: { type: "string" },
-    now_playing: { type: "string" },
-    is_open: { type: "boolean" },
-    currently_processing: { type: "string[]" },
-    is_subOnly: { type: "boolean" },
-  },
-  {
-    dataStructure: "JSON",
-  }
-);
-
-export async function createQueueIndex() {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  await repository.createIndex();
-}
-
-async function getQueue() {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = await repository.fetch(QUEUE_ID);
-
-  return queue;
-}
-
-async function createQueue(data: EntityCreationData) {
-  await connect();
-
-  const repository = client.fetchRepository(queueSchema);
-
-  const queue = repository.createEntity(data);
-
-  const id = await repository.save(queue);
-
-  return id;
+async function getQueue(): Promise<Queue> {
+  return readQueue();
 }
 
 async function openQueue() {
@@ -248,9 +191,8 @@ async function setSubOnly(subOnly: boolean) {
 }
 
 export {
-  Queue,
+  type Queue,
   getQueue,
-  createQueue,
   openQueue,
   closeQueue,
   lockQueue,
