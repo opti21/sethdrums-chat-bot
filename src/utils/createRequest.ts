@@ -1,4 +1,4 @@
-import type { Request } from "@prisma/client";
+import type { Request } from "../generated/prisma/client";
 import { prisma } from "../utils/prisma";
 
 export async function createRequest(

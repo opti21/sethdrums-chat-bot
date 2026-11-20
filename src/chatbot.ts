@@ -8,8 +8,6 @@ import {
   resumeQueue,
   setSubOnly,
 } from "./redis/handlers/Queue";
-import express from "express";
-import Pusher from "pusher";
 import handleSongRequest from "./commands/songRequest";
 import handleReplace from "./commands/replaceRequest";
 import handleRemove from "./commands/wrongSong";

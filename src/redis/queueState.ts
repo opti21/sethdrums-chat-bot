@@ -85,8 +85,8 @@ async function getClient(): Promise<RedisClient> {
         shared = client;
         return client;
       })
-      .catch(async (error) => {
-        await client.disconnect().catch(() => {});
+      .catch((error) => {
+        client.destroy();
         throw error;
       })
       .finally(() => {
@@ -105,7 +105,7 @@ async function withRedis<T>(fn: (client: RedisClient) => Promise<T>): Promise<T>
     if (error instanceof Error && error.message === "Redis command timed out") {
       console.error("[redis] command timed out, dropping connection");
       if (shared === client) shared = undefined;
-      client.disconnect().catch(() => {});
+      client.destroy();
     }
     throw error;
   }
@@ -121,7 +121,7 @@ async function withIsolatedRedis<T>(fn: (client: RedisClient) => Promise<T>): Pr
     await withTimeout(client.connect(), "Redis connection timed out");
     return await withTimeout(fn(client), "Redis command timed out");
   } finally {
-    client.disconnect().catch(() => {});
+    client.destroy();
   }
 }
 
@@ -217,5 +217,5 @@ export function move<T>(list: T[], from: number, to: number): T[] {
 export async function closeQueueRedis() {
   const client = shared;
   shared = undefined;
-  if (client?.isOpen) await client.quit();
+  if (client?.isOpen) await client.close();
 }

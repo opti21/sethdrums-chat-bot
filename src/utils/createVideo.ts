@@ -1,5 +1,4 @@
-import type { Video } from "@prisma/client";
-import axios from "axios";
+import type { Video } from "../generated/prisma/client";
 import { type YTApiResponse } from "./types";
 import { parseYTDuration } from "./utils";
 import { prisma } from "../utils/prisma";
@@ -9,12 +8,16 @@ export async function createVideo(
   channel: string
 ): Promise<Video | undefined> {
   try {
-    const axiosResponse = await axios.get(
-      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${videoID}&key=${process.env.GOOGLE_API_KEY}`
+    const response = await fetch(
+      `https://youtube.googleapis.com/youtube/v3/videos?part=snippet%2CcontentDetails%2Cstatistics&id=${encodeURIComponent(videoID)}&key=${process.env.GOOGLE_API_KEY}`,
+      { signal: AbortSignal.timeout(10_000) }
     );
+    if (!response.ok) {
+      throw new Error(`YouTube API responded ${response.status}`);
+    }
+    const apiData: YTApiResponse = await response.json();
 
-    if (axiosResponse.data.items[0]) {
-      const apiData: YTApiResponse = axiosResponse.data;
+    if (apiData.items?.[0]) {
       const video = apiData.items[0];
       const duration = parseYTDuration(video.contentDetails.duration);
 

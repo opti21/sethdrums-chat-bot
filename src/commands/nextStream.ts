@@ -1,5 +1,4 @@
-import type { TwitchCreds } from "@prisma/client";
-import axios from "axios";
+import type { TwitchCreds } from "../generated/prisma/client";
 import { type ChatUserstate, Client } from "tmi.js";
 import { prisma } from "../utils/prisma";
 import dayjs from "dayjs";
@@ -94,18 +93,17 @@ const getSchedule = async (twitchCreds: TwitchCreds | null) => {
       console.log("NO TWITCH CREDS FOR REQUEST");
       return reject(Error("No twitch creds"));
     } else {
-      axios
-        .get(`https://api.twitch.tv/helix/schedule?broadcaster_id=147155277`, {
-          headers: {
-            Authorization: `Bearer ${twitchCreds?.access_token}`,
-            "Client-ID": process.env.TWITCH_CLIENT_ID!,
-          },
-        })
-        .then((res) => {
-          resolve(res.data);
+      fetchJson(`https://api.twitch.tv/helix/schedule?broadcaster_id=147155277`, {
+        headers: {
+          Authorization: `Bearer ${twitchCreds?.access_token}`,
+          "Client-ID": process.env.TWITCH_CLIENT_ID!,
+        },
+      })
+        .then((data) => {
+          resolve(data);
         })
         .catch((err) => {
-          console.log("AXIOS ERROR");
+          console.log("TWITCH SCHEDULE REQUEST ERROR");
           reject(Error(err.message));
         });
     }
@@ -119,11 +117,11 @@ const getNewToken = async (): Promise<TwitchCreds | null> => {
   params.append("grant_type", "client_credentials");
 
   return new Promise((resolve, reject) => {
-    axios
-      .post("https://id.twitch.tv/oauth2/token", params)
-      .then(async (res) => {
-        console.log(res.data);
-        const data = res.data;
+    fetchJson("https://id.twitch.tv/oauth2/token", {
+      method: "POST",
+      body: params,
+    })
+      .then(async (data) => {
 
         const newCreds = await prisma.twitchCreds.upsert({
           where: {
@@ -149,3 +147,15 @@ const getNewToken = async (): Promise<TwitchCreds | null> => {
       });
   });
 };
+
+/** fetch + JSON with a timeout; rejects on a non-2xx status like axios did. */
+async function fetchJson(url: string, init: RequestInit = {}): Promise<any> {
+  const response = await fetch(url, {
+    ...init,
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) {
+    throw new Error(`Request failed with status code ${response.status}`);
+  }
+  return response.json();
+}

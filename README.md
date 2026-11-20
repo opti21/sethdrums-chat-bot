@@ -1,15 +1,19 @@
 # pepega-bot
 
-To install dependencies:
+To install dependencies and generate the Prisma client:
 
 ```bash
-bun install
+pnpm install
+pnpm generate
 ```
 
-To run:
+To run (secrets come from Doppler):
 
 ```bash
-bun run index.js
+pnpm dev
 ```
+
+`pnpm typecheck` runs the TypeScript check. Render builds with
+`pnpm install && pnpm prisma generate` and starts with `bun start`.
 
 This project was created using `bun init` in bun v1.1.24. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

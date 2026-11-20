@@ -1,5 +1,3 @@
-import { Request } from "../redis/handlers/Request";
-import { Video } from "../redis/handlers/Video";
 
 export interface YTApiResponse {
   kind: string;
@@ -97,7 +95,3 @@ export interface PageInfo {
   resultsPerPage: number;
 }
 
-export interface AlreadyRequestedResponse {
-  request: Request | null;
-  video: Video | null;
-}
