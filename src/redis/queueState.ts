@@ -1,12 +1,20 @@
 import { createClient, WatchError } from "redis";
+import { mergeOrder, move, withoutIds } from "./queueOrder";
+
+export { mergeOrder, move };
 
 /**
- * Conflict-safe writes to the queue document at `Queue:<QUEUE_ID>`.
+ * The suggestion list state, in one of two places picked by QUEUE_BACKEND
+ * (must match the frontend's):
  *
- * The frontend (lib/server/queue.ts) writes the same RedisJSON document with
- * WATCH/MULTI transactions, so the bot has to as well: saving the whole
- * entity through redis-om would overwrite whatever a mod changed between the
- * bot's read and its write. Field names here must match the frontend's.
+ * - "redis" (default): the RedisJSON document at `Queue:<QUEUE_ID>`, written
+ *   with WATCH/MULTI transactions like the frontend (lib/server/queue.ts), so
+ *   neither side can overwrite the other's change.
+ * - "do": the frontend repo's queue Durable Object (queue-worker/), reached
+ *   at QUEUE_WORKER_URL. It applies one change at a time and tells open
+ *   panels itself.
+ *
+ * Field names here must match the frontend's.
  */
 export type QueueState = {
   order: string[];
@@ -31,12 +39,47 @@ type RedisClient = ReturnType<typeof createClient>;
 let shared: RedisClient | undefined;
 let connecting: Promise<RedisClient> | undefined;
 
-function queueKey() {
+export function queueBackend(): "redis" | "do" {
+  return process.env.QUEUE_BACKEND === "do" ? "do" : "redis";
+}
+
+function queueId() {
   const id = process.env.QUEUE_ID;
   if (!id) {
     throw new Error("QUEUE_ID is not set");
   }
-  return `Queue:${id}`;
+  return id;
+}
+
+function queueKey() {
+  return `Queue:${queueId()}`;
+}
+
+type DoReply = { state: QueueState; version: number; changed: boolean; result?: unknown };
+
+/** Call the queue Worker (Durable Object backend and realtime relay). */
+export async function callQueueWorker<T>(path: "/rpc" | "/broadcast", body: Record<string, unknown>): Promise<T> {
+  const base = process.env.QUEUE_WORKER_URL;
+  const secret = process.env.QUEUE_WORKER_SECRET;
+  if (!base || !secret) {
+    throw new Error("QUEUE_WORKER_URL and QUEUE_WORKER_SECRET must be set");
+  }
+  const response = await fetch(new URL(path, base), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${secret}`, "content-type": "application/json" },
+    body: JSON.stringify({ room: queueId(), ...body }),
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  const data = (await response.json().catch(() => ({}))) as T & { error?: string };
+  if (!response.ok) {
+    throw new Error(`Queue worker ${path} failed (${response.status}): ${data.error ?? "no body"}`);
+  }
+  return data;
+}
+
+async function doOp(op: Record<string, unknown>) {
+  const reply = await callQueueWorker<DoReply>("/rpc", op);
+  return { ...reply, state: normalize(reply.state) };
 }
 
 function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
@@ -150,6 +193,7 @@ function normalize(raw: unknown): QueueState {
 }
 
 export async function readQueue(): Promise<QueueState> {
+  if (queueBackend() === "do") return (await doOp({ op: "get" })).state;
   return normalize(await withRedis((redis) => redis.json.get(queueKey())));
 }
 
@@ -158,6 +202,10 @@ export async function readQueue(): Promise<QueueState> {
  * path, so it can't clobber the order or anyone else's change.
  */
 export async function setQueueFields(fields: QueueFlags) {
+  if (queueBackend() === "do") {
+    await doOp({ op: "setFields", fields });
+    return;
+  }
   const key = queueKey();
   await withRedis(async (redis) => {
     const multi = redis.multi();
@@ -175,7 +223,7 @@ export async function setQueueFields(fields: QueueFlags) {
  * on the fresh state. Return null from `change` to write nothing. Resolves
  * to the state that was written, or null when nothing was.
  */
-export async function updateQueue(change: (queue: QueueState) => QueuePatch | null): Promise<QueueState | null> {
+async function updateQueue(change: (queue: QueueState) => QueuePatch | null): Promise<QueueState | null> {
   const key = queueKey();
   for (let attempt = 0; attempt < 8; attempt++) {
     const outcome = await withIsolatedRedis(async (redis) => {
@@ -205,12 +253,62 @@ export async function updateQueue(change: (queue: QueueState) => QueuePatch | nu
   throw new Error("The suggestion list is changing too fast, try again");
 }
 
-/** Move one entry of a list to a new index. */
-export function move<T>(list: T[], from: number, to: number): T[] {
-  const result = [...list];
-  const [item] = result.splice(from, 1);
-  result.splice(Math.max(0, to), 0, item);
-  return result;
+/*
+ * The operations below are what the bot's commands use. Each one works on
+ * either backend. They resolve to true when the list changed.
+ */
+
+export async function addId(id: string) {
+  if (queueBackend() === "do") return (await doOp({ op: "add", id })).changed;
+  const written = await updateQueue((q) => (q.order.includes(id) ? null : { order: [...q.order, id] }));
+  return written !== null;
+}
+
+export async function removeIds(ids: string[]) {
+  if (queueBackend() === "do") return (await doOp({ op: "remove", ids })).changed;
+  const written = await updateQueue((q) => {
+    const next = withoutIds(q.order, ids);
+    return next.length === q.order.length ? null : { order: next };
+  });
+  return written !== null;
+}
+
+/** Save a submitted order, merged with the live one (see mergeOrder). */
+export async function reorder(order: string[]) {
+  if (queueBackend() === "do") return (await doOp({ op: "reorder", order })).changed;
+  await updateQueue((q) => ({ order: mergeOrder(q.order, order) }));
+  return true;
+}
+
+/** Move `id` to `index`. False if it isn't in the list. */
+export async function moveId(id: string, index: number) {
+  if (queueBackend() === "do") return (await doOp({ op: "move", id, index })).result === true;
+  let found = false;
+  await updateQueue((q) => {
+    const from = q.order.indexOf(id);
+    found = from !== -1;
+    return found ? { order: move(q.order, from, index) } : null;
+  });
+  return found;
+}
+
+/** Mark a request as being changed. False if someone else already has it. */
+export async function claim(id: string) {
+  if (queueBackend() === "do") return (await doOp({ op: "claim", id })).result === true;
+  const written = await updateQueue((q) =>
+    q.currently_processing.includes(id) ? null : { currently_processing: [...q.currently_processing, id] }
+  );
+  return written !== null;
+}
+
+export async function release(id: string) {
+  if (queueBackend() === "do") return (await doOp({ op: "release", id })).changed;
+  const written = await updateQueue((q) =>
+    q.currently_processing.includes(id)
+      ? { currently_processing: q.currently_processing.filter((item) => item !== id) }
+      : null
+  );
+  return written !== null;
 }
 
 /** Close the shared connection (tests and shutdown). */

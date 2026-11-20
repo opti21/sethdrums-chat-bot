@@ -6,7 +6,7 @@ import {
 import { type ChatUserstate, Client } from "tmi.js";
 import "js-video-url-parser/lib/provider/youtube";
 import { prisma } from "../utils/prisma";
-import { pusher } from "index";
+import { trigger } from "realtime";
 
 let raffleOpen = false;
 let raffleSecondsLeft: number;
@@ -54,7 +54,7 @@ const handleRaffle = async (
   raffleOpen = true;
   raffleSecondsLeft = duration;
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "raffle-start", {
+  trigger("raffle-start", {
     duration,
   });
 
@@ -103,7 +103,7 @@ const handleRaffle = async (
 
     const winningRequest = nonPrioRequests[randomNum];
 
-    pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "raffle-end", {
+    trigger("raffle-end", {
       winner: winningRequest.requested_by,
     });
 

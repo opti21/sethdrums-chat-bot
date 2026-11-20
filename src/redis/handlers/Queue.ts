@@ -1,9 +1,14 @@
-import { pusher } from "index";
+import { trigger } from "realtime";
 import {
-  move,
+  addId,
+  claim,
+  mergeOrder,
+  moveId,
   readQueue,
+  release,
+  removeIds,
+  reorder,
   setQueueFields,
-  updateQueue,
   type QueueState,
 } from "../queueState";
 
@@ -16,57 +21,51 @@ async function getQueue(): Promise<Queue> {
 async function openQueue() {
   await setQueueFields({ is_open: true });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "open-queue", {});
+  void trigger("open-queue");
 }
 
 async function closeQueue() {
   await setQueueFields({ is_open: false, is_paused: false });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "close-queue", {});
+  void trigger("close-queue");
 }
 
 async function lockQueue() {
   await setQueueFields({ is_updating: true, being_updated_by: "PEPEGA BOT" });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "lock-queue", {
-    beingUpdatedBy: "PEPEGA BOT",
-  });
+  void trigger("lock-queue", { beingUpdatedBy: "PEPEGA BOT" });
 }
 
 async function unLockQueue() {
   await setQueueFields({ is_updating: false, being_updated_by: "" });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "unlock-queue", {
-    beingUpdatedBy: "",
-  });
+  void trigger("unlock-queue", { beingUpdatedBy: "" });
 }
 
 async function pauseQueue() {
   await setQueueFields({ is_paused: true });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "pause-queue", {});
+  void trigger("pause-queue");
 }
 
 async function resumeQueue() {
   await setQueueFields({ is_paused: false });
 
-  pusher.trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "resume-queue", {});
+  void trigger("resume-queue");
 }
 
 /*
- * Order and currently_processing changes below go through updateQueue, a
- * WATCH/MULTI transaction that retries on the fresh state if a mod (or
- * another bot command) changed the queue mid-write. They no longer lock the
- * panel: nothing can be overwritten, so there is nothing to lock out.
+ * Order and currently_processing changes below can't overwrite a mod's
+ * change: on Redis they are WATCH/MULTI transactions that retry on fresh
+ * state, and the Durable Object applies one change at a time.
  *
- * The panel refreshes on Pusher events, so every write below that changed
+ * The panel refreshes on live events, so every write below that changed
  * something tells it with "update-queue" (or "queue-add" for new songs).
+ * The Durable Object also sends these itself; a second one is harmless.
  */
 
 function notifyQueueChanged() {
-  pusher
-    .trigger(process.env.NEXT_PUBLIC_PUSHER_CHANNEL!, "update-queue", {})
-    .catch((err) => console.error("Error sending update-queue", err));
+  void trigger("update-queue");
 }
 
 async function addToQueue(
@@ -78,16 +77,8 @@ async function addToQueue(
       return;
     }
 
-    const id = String(requestID);
-    const queue = await updateQueue((current) =>
-      current.order.includes(id) ? null : { order: [...current.order, id] }
-    );
-
-    pusher.trigger(
-      process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
-      "queue-add",
-      queue ?? (await readQueue())
-    );
+    await addId(String(requestID));
+    void trigger("queue-add", await readQueue());
 
     return true;
   } catch (e) {
@@ -100,34 +91,13 @@ async function removeFromOrder(
   requestID: string | undefined
 ): Promise<boolean> {
   try {
-    const id = String(requestID);
-    const written = await updateQueue((current) =>
-      current.order.includes(id)
-        ? { order: current.order.filter((item) => item !== id) }
-        : null
-    );
-    if (written) notifyQueueChanged();
+    if (await removeIds([String(requestID)])) notifyQueueChanged();
 
     return true;
   } catch (e) {
     console.error(e);
     return Promise.reject("Error removing from order");
   }
-}
-
-/**
- * Merge a submitted order with the live one: ids that left the queue are
- * dropped, and ids added since the caller read the queue keep their place
- * instead of vanishing. Same rule as the panel's drag save.
- */
-function mergeOrder(current: string[], submitted: string[]) {
-  const live = new Set(current);
-  const order = [...new Set(submitted.map(String))].filter((id) => live.has(id));
-  const seen = new Set(order);
-  current.forEach((id, index) => {
-    if (!seen.has(id)) order.splice(Math.min(index, order.length), 0, id);
-  });
-  return order;
 }
 
 async function updateOrder(updatedOrderData: any): Promise<boolean> {
@@ -138,9 +108,7 @@ async function updateOrder(updatedOrderData: any): Promise<boolean> {
 
 async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
   try {
-    await updateQueue((current) => ({
-      order: mergeOrder(current.order, updatedOrder),
-    }));
+    await reorder(updatedOrder.map(String));
     notifyQueueChanged();
 
     return true;
@@ -152,13 +120,7 @@ async function updateOrderIdStrings(updatedOrder: string[]): Promise<boolean> {
 
 /** Move a request to `index` in the live order. False if it left the queue. */
 async function moveInOrder(requestID: string, index: number): Promise<boolean> {
-  const id = String(requestID);
-  let found = false;
-  await updateQueue((current) => {
-    const from = current.order.indexOf(id);
-    found = from !== -1;
-    return found ? { order: move(current.order, from, index) } : null;
-  });
+  const found = await moveId(String(requestID), index);
   if (found) notifyQueueChanged();
   return found;
 }
@@ -177,28 +139,13 @@ async function updateNowPlaying(requestID: string): Promise<boolean> {
 
 /** Mark a request as being changed. False if someone else already has it. */
 async function setPrioAsProcessing(requestID: string): Promise<boolean> {
-  const id = String(requestID);
-  const written = await updateQueue((current) =>
-    current.currently_processing.includes(id)
-      ? null
-      : { currently_processing: [...current.currently_processing, id] }
-  );
-  if (written) notifyQueueChanged();
-  return written !== null;
+  const claimed = await claim(String(requestID));
+  if (claimed) notifyQueueChanged();
+  return claimed;
 }
 
 async function removePrioFromProcessing(requestID: string) {
-  const id = String(requestID);
-  const written = await updateQueue((current) =>
-    current.currently_processing.includes(id)
-      ? {
-          currently_processing: current.currently_processing.filter(
-            (item) => item !== id
-          ),
-        }
-      : null
-  );
-  if (written) notifyQueueChanged();
+  if (await release(String(requestID))) notifyQueueChanged();
 }
 
 async function setSubOnly(subOnly: boolean) {

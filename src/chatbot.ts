@@ -14,7 +14,7 @@ import handleRemove from "./commands/wrongSong";
 import handleCurrentSong from "./commands/currentSong";
 import handleSaveSong from "./commands/saveSong";
 import handleRaffle from "./commands/raffle";
-import { pusher } from "index";
+import { trigger } from "realtime";
 
 const botUsername =
   process.env.NODE_ENV === "production" ? "pepega_bot21" : "opti_21";
@@ -50,9 +50,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         console.error(err);
         twitch.say(channel, "Error opening Sugestion List @opti_21");
       });
-      pusher.trigger(
-        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
-        "update-queue",
+      trigger("update-queue",
         {},
       );
       twitch.say(channel, `@${tags.username} Suggestion List is now open ✅`);
@@ -70,9 +68,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         console.error(err);
         twitch.say(channel, "Error closing Suggestion list @opti_21");
       });
-      pusher.trigger(
-        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
-        "update-queue",
+      trigger("update-queue",
         {},
       );
       twitch.say(channel, `@${tags.username} Suggestion list is now closed 🛑`);
@@ -96,9 +92,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         console.error(err);
         twitch.say(channel, "Error pausing Suggestion List @opti_21");
       });
-      pusher.trigger(
-        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
-        "update-queue",
+      trigger("update-queue",
         {},
       );
       twitch.say(channel, `@${tags.username} Suggestion list is now paused ⏸️`);
@@ -123,9 +117,7 @@ twitch.on("message", async (channel, tags, message, self) => {
         console.error(err);
         twitch.say(channel, "Error resuming Suggestion List @opti_21");
       });
-      pusher.trigger(
-        process.env.NEXT_PUBLIC_PUSHER_CHANNEL!,
-        "update-queue",
+      trigger("update-queue",
         {},
       );
       twitch.say(
